@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://web.resource.org/cc/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" width="100" height="50" id="svg2" version="1.0">
+	<g id="layer">
+		<path style="stroke: #FFFFFF; stroke-width:10;" d="M 0,50 L 50,0 z"/>
+		<path style="stroke: #FFFFFF; stroke-width:10;" d="M 50,0 L 100,50 z"/>
+	</g>
+</svg>

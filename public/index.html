@@ -6,16 +6,29 @@
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<title>Asteroids</title>
 	<meta name="description" content="">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
+
+	<link rel="stylesheet" href="css/main.css">
 </head>
 <body>
 
 	<canvas id="game-screen">
+
 	</canvas>
+	<div id="throttle-controls">
+		<img id="up" src="/img/chevron-arrow.svg">
+		<img id="left" src="/img/chevron-arrow.svg">
+		<img id="right" src="/img/chevron-arrow.svg">
+	</div>
+	<div id="fire-control">
+		<img src="/img/crosshairs.svg">
+	</div>
+	<div id="game-over" class="hidden">
+		GAME OVER
+	</div>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.7.0/lodash.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-	
+
 	<script src="js/main.js"></script>
 </body>
 </html>
