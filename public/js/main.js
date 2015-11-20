@@ -88,17 +88,17 @@ var makeAsteroid = function(size,location){
 
 
 var ship = {
-	location:[0,0],
-	velocity:[0,0],// in pxpms (pixels per millisecond)
-	heading:Math.PI,
-	points: [[0,13],[11,-13],[-11,-13]],
+	location: [0,0],
+	velocity: [0,0],// in pxpms (pixels per millisecond)
+	heading: -0.0,
+	points: [[13,0],[-13,-11],[-13,11]],
 	getRealPointCoordinates:getRealPointCoordinates,
 	draw: draw,
 	bulletMuzzleSpeed: 11,//pixels per ms
 	fire: function(){
 		if(bullets.length>10)
 			return 
-		var bulletVelocity = rotate(ship.heading,[0,this.bulletMuzzleSpeed])	
+		var bulletVelocity = rotate(ship.heading,[this.bulletMuzzleSpeed,0])	
 		bulletVelocity[0]+=this.velocity[0]
 		bulletVelocity[1]+=this.velocity[1]
 		bullets.push(makeBullet(this.location.slice(), bulletVelocity))
@@ -109,7 +109,7 @@ ship.fire =  _.throttle(ship.fire.bind(ship),10,{
   trailing: false
 })
 
-var asteroids = _.range(4).map(function(){
+var asteroids = []||_.range(4).map(function(){
 	return makeAsteroid()
 })
 var bullets = []
@@ -139,31 +139,23 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		e.preventDefault()
 		controls.accel = 0
 		controls.yaw = 0
+		controls.targetDesitination = null
 	}
 	var updateControls = function(e){
 		e.preventDefault()
 		var touch = e.targetTouches.item(0)
-		//get touch in relation to 0 of controls
-		controlsZero = [controlsDiv.offsetLeft+controlsDiv.clientWidth/2,
-		                controlsDiv.offsetTop+controlsDiv.clientHeight-10]
-		controls.yaw = (touch.pageX-controlsZero[0])/(controlsDiv.clientWidth/2)
-		controls.yaw = Math.max(controls.yaw,-1)
-		controls.yaw = Math.min(controls.yaw,1)
-		controls.accel = (controlsZero[1]-touch.pageY)/controlsDiv.clientHeight
-		controls.accel = Math.max(controls.accel,0)
-		controls.accel = Math.min(controls.accel,1)
+		controls.targetDesitination = [touch.pageX,touch.pageY]
+		console.log(controls)
 	}.bind(this)
-	controlsDiv.addEventListener("touchstart", updateControls)
-	controlsDiv.addEventListener("touchmove", updateControls)
-	controlsDiv.addEventListener("touchend", zeroControls)
-	controlsDiv.addEventListener("touchcancel", zeroControls)
+	gameCanvas.addEventListener("touchstart", function(e){
+		ship.fire()
+		updateControls(e)
+	})
+	gameCanvas.addEventListener("touchmove", updateControls)
+	gameCanvas.addEventListener("touchend", zeroControls)
+	gameCanvas.addEventListener("touchcancel", zeroControls)
 	
 	var score = 0
-
-	var fireControlDiv = document.getElementById('fire-control')
-	//fireControlDiv.addEventListener('click', ship.fire)
-	fireControlDiv.addEventListener('touchstart', ship.fire)
-
 	window.addEventListener('resize',_.throttle(updateScreenDimensions, 100))
 
 	window.addEventListener('keydown', function(e){
@@ -190,8 +182,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	gameOverDiv = document.getElementById('game-over')
 	var collide = function(){
 		var shipPoints = ship.getRealPointCoordinates()
+		/*var bulletLines = bullets.map(function(bullet){
+			return [bullet.location,
+			        [(bullet.location[0]+bullet.velocity[0],
+			         (bullet.location[1]+bullet.velocity[1]]]
+		})*/
 		outter: for(var j = 0; j < asteroids.length; j++){
 			for(var i = 0; i< bullets.length; i++){
+				//turn bullet into a line
 				if(asteroids[j].contains(bullets[i].location)){
 					if(asteroids[j].size != 1)
 						asteroids.splice(j,1, 
@@ -208,14 +206,25 @@ document.addEventListener("DOMContentLoaded", function(event) {
 					gameOverDiv.className = ""			
 		}
 	}
-	var controlYawFactor = .004//radiansPerMS
+	var controlYawFactor = .008//radiansPerMS
 	var controlAccelerationFactor = .02//pixels per ms per ms
 	var applyControls = function(duration){
-		ship.heading+= duration*controls.yaw*controlYawFactor
-		ship.heading+= duration*controls.yaw*controlYawFactor
-		var acceleration = rotate(ship.heading,[0,duration*controls.accel*controlAccelerationFactor])	
+		if(controls.targetDesitination){
+			//dynamically up date controls each time they are applied
+			console.log("SHIP HEADING: "+ship.heading%(Math.PI*2))
+			var touchHeading = Math.atan2(controls.targetDesitination[0]-ship.location[0],controls.targetDesitination[1]-ship.location[1])
+			console.log("TOUCH HEADING: "+touchHeading)
+			controls.yaw = touchHeading-ship.heading
+			console.log("RAW YAW: "+controls.yaw)
+			controls.yaw = Math.max(-1,Math.min(1,controls.yaw))
+			controls.accel=1
+		}
+		ship.heading += duration*controls.yaw*controlYawFactor
+		ship.heading = (ship.heading+(Math.PI*2))%(Math.PI*2)
+		var acceleration = rotate(ship.heading,[duration*controls.accel*controlAccelerationFactor,0])	
 		ship.velocity[0]+=acceleration[0]
 		ship.velocity[1]+=acceleration[1]
+		
 	}
 	var shipDeceleration = .0006//in pxpsps
 	var lastPaintTime = 0//window.performance.now()
