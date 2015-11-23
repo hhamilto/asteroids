@@ -3,6 +3,10 @@ rotate = function(angle,point){
             point[0]*Math.sin(angle)+point[1]*Math.cos(angle)]
 }
 
+distance = function(p1,p2){
+	return Math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
+}
+
 window.onerror = function(error) {
     alert(error);
 }
@@ -88,17 +92,17 @@ var makeAsteroid = function(size,location){
 
 
 var ship = {
-	location: [0,0],
-	velocity: [0,0],// in pxpms (pixels per millisecond)
-	heading: -0.0,
-	points: [[13,0],[-13,-11],[-13,11]],
+	location:[0,0],
+	velocity:[0,0],// in pxpms (pixels per millisecond)
+	heading: 0,
+	points: [[0,13],[11,-13],[-11,-13]],
 	getRealPointCoordinates:getRealPointCoordinates,
 	draw: draw,
 	bulletMuzzleSpeed: 11,//pixels per ms
 	fire: function(){
 		if(bullets.length>10)
 			return 
-		var bulletVelocity = rotate(ship.heading,[this.bulletMuzzleSpeed,0])	
+		var bulletVelocity = rotate(ship.heading,[0,this.bulletMuzzleSpeed])	
 		bulletVelocity[0]+=this.velocity[0]
 		bulletVelocity[1]+=this.velocity[1]
 		bullets.push(makeBullet(this.location.slice(), bulletVelocity))
@@ -109,7 +113,7 @@ ship.fire =  _.throttle(ship.fire.bind(ship),10,{
   trailing: false
 })
 
-var asteroids = []||_.range(4).map(function(){
+var asteroids = _.range(3).map(function(){
 	return makeAsteroid()
 })
 var bullets = []
@@ -145,7 +149,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		e.preventDefault()
 		var touch = e.targetTouches.item(0)
 		controls.targetDesitination = [touch.pageX,touch.pageY]
-		console.log(controls)
 	}.bind(this)
 	gameCanvas.addEventListener("touchstart", function(e){
 		ship.fire()
@@ -211,17 +214,25 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	var applyControls = function(duration){
 		if(controls.targetDesitination){
 			//dynamically up date controls each time they are applied
-			console.log("SHIP HEADING: "+ship.heading%(Math.PI*2))
-			var touchHeading = Math.atan2(controls.targetDesitination[0]-ship.location[0],controls.targetDesitination[1]-ship.location[1])
-			console.log("TOUCH HEADING: "+touchHeading)
+			var touchHeading = -Math.atan2(controls.targetDesitination[0]-ship.location[0],controls.targetDesitination[1]-ship.location[1])
+			touchHeading = (touchHeading+(Math.PI*2))%(Math.PI*2)
+			console.log('touchHeading: '+touchHeading)
 			controls.yaw = touchHeading-ship.heading
-			console.log("RAW YAW: "+controls.yaw)
+			console.log('rawYaw: '+controls.yaw)
+			if(controls.yaw > Math.PI)
+				controls.yaw-=2*Math.PI
+			if(controls.yaw < -Math.PI)
+				controls.yaw+=2*Math.PI
 			controls.yaw = Math.max(-1,Math.min(1,controls.yaw))
-			controls.accel=1
+
+			var dist = distance(controls.targetDesitination,ship.location)/200
+			controls.accel = Math.min(.4,dist*dist)
+			//controls.accel = .5
 		}
 		ship.heading += duration*controls.yaw*controlYawFactor
 		ship.heading = (ship.heading+(Math.PI*2))%(Math.PI*2)
-		var acceleration = rotate(ship.heading,[duration*controls.accel*controlAccelerationFactor,0])	
+		console.log('ship.heading: '+ ship.heading)
+		var acceleration = rotate(ship.heading,[0,duration*controls.accel*controlAccelerationFactor])	
 		ship.velocity[0]+=acceleration[0]
 		ship.velocity[1]+=acceleration[1]
 		
