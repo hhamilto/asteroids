@@ -73,7 +73,12 @@ html,body {
 	left:0;
 }
 
-
 .hidden {
 	display:none;
+}
+
+#orientation {
+	position: absolute;
+	top:0;
+	left:0;
 }

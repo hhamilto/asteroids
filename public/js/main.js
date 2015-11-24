@@ -113,7 +113,7 @@ ship.fire =  _.throttle(ship.fire.bind(ship),10,{
   trailing: false
 })
 
-var asteroids = _.range(3).map(function(){
+var asteroids = _.range(1).map(function(){
 	return makeAsteroid()
 })
 var bullets = []
@@ -139,6 +139,33 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		accel:0, //range [0,1]
 		yaw:0 //range [-1,1]
 	}
+	var gammaZero = -20
+	window.addEventListener("deviceorientation", function(e){
+		var orientationDiv = document.getElementById('orientation')
+		console.log(e)
+		// e.alpha = device rotation in degrees [0,360)
+		if(e.alpha > 180)
+			controls.yaw = (360-e.alpha)
+		else
+			controls.yaw = -e.alpha
+		controls.yaw/=15
+		controls.yaw = e.beta/30
+		// e.gamma = forward/backward
+		if(gammaZero == null)
+			gammaZero = e.gamma
+		controls.accel = (gammaZero - e.gamma)/30
+		controls.accel = Math.max(0,controls.accel)
+		controls.accel = Math.min(.4,controls.accel)
+
+
+		orientationDiv.innerHTML = e.alpha + ", " +
+		                           e.beta  + ", " +
+		                           e.gamma + ", " +
+		                           gammaZero
+
+		controls.targetDesitination = null
+	})
+
 	var zeroControls = function(e){
 		e.preventDefault()
 		controls.accel = 0
@@ -148,7 +175,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	var updateControls = function(e){
 		e.preventDefault()
 		var touch = e.targetTouches.item(0)
-		controls.targetDesitination = [touch.pageX,touch.pageY]
+	//	controls.targetDesitination = [touch.pageX,touch.pageY]
 	}.bind(this)
 	gameCanvas.addEventListener("touchstart", function(e){
 		ship.fire()
@@ -216,9 +243,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 			//dynamically up date controls each time they are applied
 			var touchHeading = -Math.atan2(controls.targetDesitination[0]-ship.location[0],controls.targetDesitination[1]-ship.location[1])
 			touchHeading = (touchHeading+(Math.PI*2))%(Math.PI*2)
-			console.log('touchHeading: '+touchHeading)
 			controls.yaw = touchHeading-ship.heading
-			console.log('rawYaw: '+controls.yaw)
 			if(controls.yaw > Math.PI)
 				controls.yaw-=2*Math.PI
 			if(controls.yaw < -Math.PI)
@@ -231,7 +256,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		}
 		ship.heading += duration*controls.yaw*controlYawFactor
 		ship.heading = (ship.heading+(Math.PI*2))%(Math.PI*2)
-		console.log('ship.heading: '+ ship.heading)
 		var acceleration = rotate(ship.heading,[0,duration*controls.accel*controlAccelerationFactor])	
 		ship.velocity[0]+=acceleration[0]
 		ship.velocity[1]+=acceleration[1]
