@@ -143,25 +143,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	window.addEventListener("deviceorientation", function(e){
 		var orientationDiv = document.getElementById('orientation')
 		console.log(e)
-		// e.alpha = device rotation in degrees [0,360)
-		if(e.alpha > 180)
-			controls.yaw = (360-e.alpha)
-		else
-			controls.yaw = -e.alpha
-		controls.yaw/=15
-		controls.yaw = e.beta/30
-		// e.gamma = forward/backward
-		if(gammaZero == null)
-			gammaZero = e.gamma
-		controls.accel = (gammaZero - e.gamma)/30
-		controls.accel = Math.max(0,controls.accel)
-		controls.accel = Math.min(.4,controls.accel)
+		//beta/gamma
+		var tiltHeading = -Math.atan2(e.beta,-e.gamma)
+		tiltHeading = (tiltHeading+(Math.PI*2))%(Math.PI*2)
+		controls.yaw = tiltHeading-ship.heading
+		if(controls.yaw > Math.PI)
+			controls.yaw-=2*Math.PI
+		if(controls.yaw < -Math.PI)
+			controls.yaw+=2*Math.PI
+		controls.yaw = Math.max(-1,Math.min(1,controls.yaw))
 
+		controls.accel = (Math.abs(e.beta)+Math.abs(e.gamma))/2 /30
 
 		orientationDiv.innerHTML = e.alpha + ", " +
 		                           e.beta  + ", " +
 		                           e.gamma + ", " +
-		                           gammaZero
+		                           tiltHeading
 
 		controls.targetDesitination = null
 	})
