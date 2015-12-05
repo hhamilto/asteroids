@@ -14,40 +14,13 @@ html,body {
 	height: 100%
 }
 
-#throttle-controls {
-	/*background: red;*/
-	height: 110px;
-	width: 150px;
+#throttle-control {
+	height: 80px;
+	width: 80px;
 	position: absolute;
-	bottom: 30px;
-	left: 10px;
-}
-
-#up {
-	width:30%;
+	bottom: 8px;
+	right: 8px;
 	opacity: .5;
-	margin: 0 auto;
-	display: block;
-}
-
-#left {
-	position: absolute;
-	width:30%;
-	opacity: .5;
-	transform: rotate(-90deg);
-	-webkit-transform: rotate(-90deg);
-	bottom:-10%;
-	left:0;
-}
-
-#right {
-	position: absolute;
-	width:30%;
-	opacity: .5;
-	transform: rotate(90deg);
-	-webkit-transform: rotate(90deg);
-	bottom:-10%;
-	right:0;
 }
 
 #fire-control {
@@ -55,7 +28,7 @@ html,body {
 	width: 70px;
 	position: absolute;
 	bottom: 10px;
-	right: 10px;
+	left: 10px;
 }
 
 #fire-control img{

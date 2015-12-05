@@ -66,30 +66,42 @@ var makeAsteroid = function(size,location){
 		}),
 		draw:draw,
 		getRealPointCoordinates:getRealPointCoordinates,
-		contains: function(p){
-			//http://bbs.dartmouth.edu/~fangq/MATH/download/source/Determining%20if%20a%20point%20lies%20on%20the%20interior%20of%20a%20polygon.htm
+		collides: function(line){
 			var points = this.getRealPointCoordinates()
 			points.push(points[0])
-			for(i=0;i<points.length-1;i++){
-				//if its on the right its outside. assumes ccw winding
-				/*var x = p[0]
-				var y = p[1]
-				var x0 = points[i][0]
-				var y0 = points[i][1]
-				var x1 = points[i+1][0]
-				var y1 = points[i+1][1]
-				var side = (y - y0) * (x1 - x0) - (x - x0) * (y1 - y0) 
-				*/
-				var side = (p[1] - points[i][1])*(points[i+1][0] - points[i][0]) - 
-				           (p[0] - points[i][0])*(points[i+1][1] - points[i][1]) 
-				if(side < 0)
-					return false
+			for(var i = 0; i<points.length-1; i++){
+				if(doIntersect(points[i],points[i+1],line[0], line[1]))
+					return true
 			}
-			return true
+			return false
 		}
 	}
 }
 
+var orientation = function(p,q,r){
+	// See http://www.geeksforgeeks.org/orientation-3-ordered-points/
+	// for details of below formula.
+	var val = (q[1] - p[1]) * (r[0] - q[0]) -
+	          (q[0] - p[0]) * (r[1] - q[1])
+	if (val == 0) return 0  // colinear
+	return (val > 0)?1:2 // clock or counterclock wise
+}
+ 
+// The main function that returns true if line segment 'p1q1'
+// and 'p2q2' intersect.
+var doIntersect = function(p1, q1, p2, q2){
+    // Find the four orientations needed for general and
+    // special cases
+    var o1 = orientation(p1, q1, p2)
+    var o2 = orientation(p1, q1, q2)
+    var o3 = orientation(p2, q2, p1)
+    var o4 = orientation(p2, q2, q1)
+ 
+    // General case
+    if (o1 != o2 && o3 != o4)
+        return true
+    return false // Doesn't fall in any of the above cases
+}
 
 var ship = {
 	location:[0,0],
@@ -134,7 +146,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 	ship.location = [screenDimensions[0]/2,screenDimensions[1]/2]
 
-	var controlsDiv = document.getElementById('throttle-controls')
+	var throttleDiv = document.getElementById('throttle-control')
 	var controls = {
 		accel:0, //range [0,1]
 		yaw:0 //range [-1,1]
@@ -153,34 +165,24 @@ document.addEventListener("DOMContentLoaded", function(event) {
 			controls.yaw+=2*Math.PI
 		controls.yaw = Math.max(-1,Math.min(1,controls.yaw))
 
-		controls.accel = (Math.abs(e.beta)+Math.abs(e.gamma))/2 /30
-
 		orientationDiv.innerHTML = e.alpha + ", " +
 		                           e.beta  + ", " +
 		                           e.gamma + ", " +
 		                           tiltHeading
-
-		controls.targetDesitination = null
 	})
 
-	var zeroControls = function(e){
+	throttleDiv.addEventListener("touchstart", function(e){
+		e.preventDefault()
+		controls.accel = .5
+	})
+	throttleDiv.addEventListener("touchend", function(e){
 		e.preventDefault()
 		controls.accel = 0
-		controls.yaw = 0
-		controls.targetDesitination = null
-	}
-	var updateControls = function(e){
-		e.preventDefault()
-		var touch = e.targetTouches.item(0)
-	//	controls.targetDesitination = [touch.pageX,touch.pageY]
-	}.bind(this)
+	})
+
 	gameCanvas.addEventListener("touchstart", function(e){
 		ship.fire()
-		updateControls(e)
 	})
-	gameCanvas.addEventListener("touchmove", updateControls)
-	gameCanvas.addEventListener("touchend", zeroControls)
-	gameCanvas.addEventListener("touchcancel", zeroControls)
 	
 	var score = 0
 	window.addEventListener('resize',_.throttle(updateScreenDimensions, 100))
@@ -209,15 +211,15 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	gameOverDiv = document.getElementById('game-over')
 	var collide = function(){
 		var shipPoints = ship.getRealPointCoordinates()
-		/*var bulletLines = bullets.map(function(bullet){
+		var bulletLines = bullets.map(function(bullet){
 			return [bullet.location,
-			        [(bullet.location[0]+bullet.velocity[0],
-			         (bullet.location[1]+bullet.velocity[1]]]
-		})*/
+			        [(bullet.location[0]-bullet.velocity[0]),
+			         (bullet.location[1]-bullet.velocity[1])]]
+		})
 		outter: for(var j = 0; j < asteroids.length; j++){
-			for(var i = 0; i< bullets.length; i++){
+			for(var i = 0; i< bulletLines.length; i++){
 				//turn bullet into a line
-				if(asteroids[j].contains(bullets[i].location)){
+				if(asteroids[j].collides(bulletLines[i])){
 					if(asteroids[j].size != 1)
 						asteroids.splice(j,1, 
 						        makeAsteroid(asteroids[j].size-1,asteroids[j].location.slice()),
@@ -228,29 +230,14 @@ document.addEventListener("DOMContentLoaded", function(event) {
 					continue outter
 				}
 			}
-			for(var i = 0; i< shipPoints.length; i++)
+			/*for(var i = 0; i< shipPoints.length; i++)
 				if(asteroids[j].contains(shipPoints[i]))
-					gameOverDiv.className = ""			
+					gameOverDiv.className = ""*/	
 		}
 	}
 	var controlYawFactor = .008//radiansPerMS
 	var controlAccelerationFactor = .02//pixels per ms per ms
 	var applyControls = function(duration){
-		if(controls.targetDesitination){
-			//dynamically up date controls each time they are applied
-			var touchHeading = -Math.atan2(controls.targetDesitination[0]-ship.location[0],controls.targetDesitination[1]-ship.location[1])
-			touchHeading = (touchHeading+(Math.PI*2))%(Math.PI*2)
-			controls.yaw = touchHeading-ship.heading
-			if(controls.yaw > Math.PI)
-				controls.yaw-=2*Math.PI
-			if(controls.yaw < -Math.PI)
-				controls.yaw+=2*Math.PI
-			controls.yaw = Math.max(-1,Math.min(1,controls.yaw))
-
-			var dist = distance(controls.targetDesitination,ship.location)/200
-			controls.accel = Math.min(.4,dist*dist)
-			//controls.accel = .5
-		}
 		ship.heading += duration*controls.yaw*controlYawFactor
 		ship.heading = (ship.heading+(Math.PI*2))%(Math.PI*2)
 		var acceleration = rotate(ship.heading,[0,duration*controls.accel*controlAccelerationFactor])	
