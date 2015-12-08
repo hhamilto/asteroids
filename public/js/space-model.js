@@ -4,12 +4,12 @@ SpaceModel = (function(){
 	var GetRealPointCoordinates = function(object){
 		var rotatedPoints = object.points.map(function(point){
 			return rotate(object.heading,point)
-		}.bind(object))
+		})
 
 		rotatedPoints.forEach(function(p){
 			p[0]+=object.location[0]
 			p[1]+=object.location[1]
-		}.bind(object))
+		})
 		return rotatedPoints
 	}
 
@@ -31,7 +31,8 @@ SpaceModel = (function(){
 				location: location,
 				velocity: velocity,
 				points: [[2,2],[2,-2],[-2,-2],[-2,2]],
-				death: Date.now()+900
+				death: Date.now()+900,
+				heading:0
 			}
 		}
 	}
@@ -132,7 +133,6 @@ SpaceModel = (function(){
 			_.each(Spaces.AllSpaceJunk(space), function(spaceObject){
 				Draw(spaceObject,space.ctx)
 			})
-			console.log(Spaces.AllSpaceJunk(space))
 		},
 		MakeGo: function(space, item){
 			item.location[0] = (item.location[0]+item.velocity[0]+space.dimensions[0])%space.dimensions[0]
