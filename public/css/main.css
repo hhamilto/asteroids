@@ -1,4 +1,13 @@
 
+@font-face {
+	font-family: 'Bespoke-50s';
+	src: url('../fonts/Bespoke-50s.eot');
+	src: url('../fonts/Bespoke-50s.eot?#iefix') format('embedded-opentype'),
+	url('../fonts/Bespoke-50s.woff') format('woff'),
+	url('../fonts/Bespoke-50s.ttf') format('truetype'),
+	url('../fonts/Bespoke-50s.svg#Bespoke-AJWUQvggsM') format('svg');
+}
+
 html,body {
 	position: relative;
 	width: 100%;
@@ -6,6 +15,7 @@ html,body {
 	padding: 0;
 	margin: 0;
 	color:white;
+	font-family: 'Bespoke-50s';
 }
 
 #game-screen{
@@ -34,16 +44,18 @@ html,body {
 #fire-control img{
 	width: 100%;
 	height: 100%;
-	opacity: .5
+	opacity: .5;
 }
 
 #game-over {
-	height: 100%;
 	width: 100%;
 	text-align: center;
 	position: absolute;
-	top:0;
-	left:0;
+	top: 50%;
+	transform: translateY(-50%);
+	font-size: 30px;
+	padding: 10px;
+	box-sizing: border-box;
 }
 
 .hidden {
