@@ -34,17 +34,15 @@ doIntersect = function(p1, q1, p2, q2){
 	return false // Doesn't fall in any of the above cases
 }
 
-
-
-var makeBullet = function(location, velocity){
-	return {
-		location:location,
-		velocity:velocity,
-		heading:0,
-		points: [[2,2],[2,-2],[-2,-2],[-2,2]],
-		draw:draw,
-		getRealPointCoordinates:getRealPointCoordinates,
-		death:Date.now()+900
+mixinEvents = function(eventSource){
+	var eventHash = {}
+	eventSource.on = function(event, func){
+		(eventHash[event] = eventHash[event] || []).push(func)
+	}
+	eventSource.emit = function(event){
+		var args = Array.prototype.slice.call(arguments, 1)
+		!(eventHash[event] = eventHash[event] || []).forEach(function(fun){
+			fun.apply(null, args)
+		})
 	}
 }
-
