@@ -16,7 +16,6 @@ SpaceModel = (function(){
 	}
 
 	var Draw = function(ctx, object){
-
 		ctx.beginPath()
 		ctx.moveTo(object.pointsFORSpace[0],object.pointsFORSpace[1])
 		object.pointsFORSpace.slice(1).concat([object.pointsFORSpace[0]]).forEach(function(point){
@@ -99,7 +98,7 @@ SpaceModel = (function(){
 
 	var Controls = {
 		Create: function(){
-			return {
+			var controls = {
 				accel:0, //range [0,1]
 				yaw:0, //range [-1,1]
 				corrections: {
@@ -107,6 +106,8 @@ SpaceModel = (function(){
 					accelerationFactor: .02//pixels per ms per ms
 				}
 			}
+			mixinEvents(controls)
+			return controls
 		}
 	}
 
@@ -123,8 +124,12 @@ SpaceModel = (function(){
 				lastPaintTime: 0
 			}
 			mixinEvents(newSpace)
+			//XXX too many events
 			newSpace.ship.on('bullet', function(bullet){
 				newSpace.bullets.push(bullet)
+			})
+			newSpace.controls.on('fire', function(){
+				Ships.Fire(newSpace.ship)
 			})
 			return newSpace
 		},
@@ -184,6 +189,14 @@ SpaceModel = (function(){
 			}
 		},
 		ApplyControls: function(space, duration){
+			if(space.controls.desiredHeading != undefined){
+				space.controls.yaw = tiltHeading-space.ship.heading
+				if(space.controls.yaw > Math.PI)
+					space.controls.yaw-=2*Math.PI
+				if(space.controls.yaw < -Math.PI)
+					space.controls.yaw+=2*Math.PI
+				space.controls.yaw = Math.max(-1,Math.min(1,space.controls.yaw))
+			}
 			space.ship.heading += duration*space.controls.yaw*space.controls.corrections.yawFactor
 			space.ship.heading = (space.ship.heading+(Math.PI*2))%(Math.PI*2)
 			var acceleration = rotate(space.ship.heading,[0,duration*space.controls.accel*space.controls.corrections.accelerationFactor])	
