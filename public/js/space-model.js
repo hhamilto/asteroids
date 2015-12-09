@@ -1,24 +1,25 @@
 SpaceModel = (function(){
 	// Written avoiding OO as an exercise
 
-	var GetRealPointCoordinates = function(object){
-		var rotatedPoints = object.points.map(function(point){
+	var UpdatePointsFORSpace = function(object){ //FOR = Frame Of Reference
+		object.pointsFORSpace = object.points.map(function(point){
 			return rotate(object.heading,point)
 		})
 
-		rotatedPoints.forEach(function(p){
+		object.pointsFORSpace.forEach(function(p){
 			p[0]+=object.location[0]
 			p[1]+=object.location[1]
 		})
-		return rotatedPoints
+	}
+	var ClearPointsFORSpace = function(object){
+		object.pointsFORSpace = null
 	}
 
-	var Draw = function(object, ctx){
-		var rotatedPoints = GetRealPointCoordinates(object)
+	var Draw = function(ctx, object){
 
 		ctx.beginPath()
-		ctx.moveTo(rotatedPoints[0],rotatedPoints[1])
-		rotatedPoints.slice(1).concat([rotatedPoints[0]]).forEach(function(point){
+		ctx.moveTo(object.pointsFORSpace[0],object.pointsFORSpace[1])
+		object.pointsFORSpace.slice(1).concat([object.pointsFORSpace[0]]).forEach(function(point){
 			ctx.lineTo(point[0],point[1])
 		})
 		ctx.closePath()
@@ -69,7 +70,7 @@ SpaceModel = (function(){
 			var numPoints = 12
 			var thetaJitter = Math.PI*2/numPoints
 			var radiusRandomRatio = 1/2
-			return {
+			var newAsteroid = {
 				location: location,
 				velocity: [Math.random()*1.4-.7,Math.random()*1.4-.7],
 				heading: Math.random()*2*Math.PI,
@@ -78,13 +79,14 @@ SpaceModel = (function(){
 					var theta = Math.PI*2*pointIndex/numPoints+(Math.random()*thetaJitter-thetaJitter/2)
 					var radius = Math.random()*radiusRandomRatio*ASTEROID_RADIUS+(1-radiusRandomRatio)*ASTEROID_RADIUS
 					return rotate(theta,[0, radius])
-				}),
-				
+				})
 			}
+			UpdatePointsFORSpace(newAsteroid)
+			return newAsteroid
 		},
 		Collides: function(asteroid, line){
 			var i
-			var points = GetRealPointCoordinates(asteroid)
+			var points = asteroid.pointsFORSpace.slice()
 			points.push(points[0])
 			for(i = 0; i<points.length-1; i++){
 				if(doIntersect(points[i],points[i+1],line[0], line[1]))
@@ -130,9 +132,7 @@ SpaceModel = (function(){
 			space.ctx.fillStyle = '#000'
 			space.ctx.strokeStyle = '#FFF'
 			space.ctx.fillRect(0, 0, space.dimensions[0], space.dimensions[1])
-			_.each(Spaces.AllSpaceJunk(space), function(spaceObject){
-				Draw(spaceObject,space.ctx)
-			})
+			_.each(Spaces.AllSpaceJunk(space), _.partial(Draw,space.ctx))
 		},
 		MakeGo: function(space, item){
 			item.location[0] = (item.location[0]+item.velocity[0]+space.dimensions[0])%space.dimensions[0]
@@ -158,7 +158,7 @@ SpaceModel = (function(){
 		},
 		Collide: function(space){
 			var i,j
-			var shipPoints = GetRealPointCoordinates(space.ship)
+			var shipPoints = space.ship.pointsFORSpace
 			var bulletLines = space.bullets.map(function(bullet){
 				return [bullet.location,
 				        [(bullet.location[0]-bullet.velocity[0]),
@@ -190,13 +190,21 @@ SpaceModel = (function(){
 			space.ship.velocity[0] += acceleration[0]
 			space.ship.velocity[1] += acceleration[1]
 		},
+		CalculatePointsFORSpace: function(space){
+			Spaces.AllSpaceJunk(space).forEach(UpdatePointsFORSpace)
+		},
+		ClearPointsFORSpace: function(space){
+			Spaces.AllSpaceJunk(space).forEach(ClearPointsFORSpace)
+		},
 		Update: function(space, currentTime){
 			var timePast = currentTime-space.lastPaintTime
 			space.lastPaintTime = currentTime
+			Spaces.CalculatePointsFORSpace(space)
 			Spaces.ApplyControls(space,timePast)
 			Spaces.Collide(space,timePast)
 			Spaces.ElapseTime(space,timePast)
 			Spaces.Paint(space)
+			Spaces.ClearPointsFORSpace(space)
 		}
 	}
 

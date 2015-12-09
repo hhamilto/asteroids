@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		//beta/gamma
 		var tiltHeading = -Math.atan2(e.beta,-e.gamma)
 		tiltHeading = (tiltHeading+(Math.PI*2))%(Math.PI*2)
-		space.controls.yaw = tiltHeading-ship.heading
+		space.controls.yaw = tiltHeading-space.ship.heading
 		if(space.controls.yaw > Math.PI)
 			space.controls.yaw-=2*Math.PI
 		if(space.controls.yaw < -Math.PI)
@@ -50,23 +50,23 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	var score = 0
 	
 	window.addEventListener('keydown', function(e){
-		if(e.key == 'a' || e.keyCode == 37)
-			space.controls.yaw=-.7//less touchy
-		else if(e.key == 'd' || e.keyCode == 39)
-			space.controls.yaw=.7
-		else if(e.key == 'w' || e.keyCode == 38)
+		if(e.keyCode == 'A'.charCodeAt(0) || e.keyCode == 37)
+			space.controls.yaw=-.5//less touchy
+		else if(e.keyCode == 'D'.charCodeAt(0) || e.keyCode == 39)
+			space.controls.yaw=.5
+		else if(e.keyCode == 'W'.charCodeAt(0) || e.keyCode == 38)
 			space.controls.accel=1
-		else if(e.key == ' ')
-			SpaceModel.Ships.Fire(space.ship)
-		else if(e.key == 'p')
+		else if(e.keyCode == ' '.charCodeAt(0))
+			SpaceModel.Ships.Fire(space.ship) 
+		else if(e.keyCode == 'P'.charCodeAt(0))
 			alert('Paused')
 	})
 	window.addEventListener('keyup', function(e){
-		if(e.key == 'a' || e.keyCode == 37)
+		if(e.keyCode == 'A'.charCodeAt(0) || e.keyCode == 37)
 			space.controls.yaw=0
-		else if(e.key == 'd' || e.keyCode == 39)
+		else if(e.keyCode == 'D'.charCodeAt(0) || e.keyCode == 39)
 			space.controls.yaw=0
-		else if(e.key == 'w' || e.keyCode == 38)
+		else if(e.keyCode == 'W'.charCodeAt(0) || e.keyCode == 38)
 			space.controls.accel=0
 	})
 

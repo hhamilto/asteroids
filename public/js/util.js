@@ -1,5 +1,4 @@
 
-
 rotate = function(angle,point){
 	return [point[0]*Math.cos(angle)-point[1]*Math.sin(angle),
 	        point[0]*Math.sin(angle)+point[1]*Math.cos(angle)]
