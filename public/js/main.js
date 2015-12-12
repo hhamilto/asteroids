@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 	}
 	
+	blink()
 })
 
 var startGameComponent = function(){
@@ -56,4 +57,19 @@ var startGameComponent = function(){
 		window.requestAnimationFrame(RAF_callback)
 	}
 	window.requestAnimationFrame(RAF_callback)
+}
+
+var blink = function(){
+	var elements = document.querySelectorAll('.blink')
+	var on = true
+	setInterval(function(){
+		on = !on
+		_.each(elements, on?function(el){
+			el.className = el.className.replace(/(\s+)?\bhidden\b/,' ').trim()
+			console.log(el.className)
+		}:function(el){
+			el.className = el.className + ' hidden'
+			console.log(el.className)
+		})
+	}, 1000)
 }
