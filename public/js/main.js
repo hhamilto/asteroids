@@ -1,9 +1,35 @@
 
 window.onerror = function(error) {
     alert(error);
+    alert(Object.keys(error));
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
+	var globalTouchHandler = function(){
+		//show throttle button
+		document.getElementById('throttle-control').className = ''
+		window.removeEventListener("touchstart", globalTouchHandler)
+	}
+	window.addEventListener("touchstart", globalTouchHandler)
+
+	if(window.ondeviceorientation){
+		// this device supports tilt functionality
+		if(window.localStorage.tiltCalibration){
+			ControlsAdapter.useCorrectionInfo(JSON.parse(window.localStorage.tiltCalibration))
+			startGameComponent()
+		}else{
+			document.getElementById('calibrate-tilt-settings-view').className = ''
+		}
+	}else{
+		// don't worry about device orientation calibration, show game
+		document.getElementById('game-view').className = ''
+		startGameComponent()
+
+	}
+	
+})
+
+var startGameComponent = function(){
 	var space = SpaceModel.Spaces.Create()
 	ControlsAdapter.bindTo(space.controls)
 	var gameCanvas = document.getElementById('game-screen')
@@ -30,4 +56,4 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		window.requestAnimationFrame(RAF_callback)
 	}
 	window.requestAnimationFrame(RAF_callback)
-})
+}

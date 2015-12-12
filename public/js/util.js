@@ -8,7 +8,7 @@ distance = function(p1,p2){
 	return Math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 }
 
-orientation = function(p,q,r){
+findOrientation = function(p,q,r){
 	// See http://www.geeksforgeeks.org/orientation-3-ordered-points/
 	// for details of below formula.
 	var val = (q[1] - p[1]) * (r[0] - q[0]) -
@@ -22,10 +22,10 @@ orientation = function(p,q,r){
 doIntersect = function(p1, q1, p2, q2){
 	// Find the four orientations needed for general and
 	// special cases
-	var o1 = orientation(p1, q1, p2)
-	var o2 = orientation(p1, q1, q2)
-	var o3 = orientation(p2, q2, p1)
-	var o4 = orientation(p2, q2, q1)
+	var o1 = findOrientation(p1, q1, p2)
+	var o2 = findOrientation(p1, q1, q2)
+	var o3 = findOrientation(p2, q2, p1)
+	var o4 = findOrientation(p2, q2, q1)
 
 	// General case
 	if (o1 != o2 && o3 != o4)
@@ -43,5 +43,18 @@ mixinEvents = function(eventSource){
 		!(eventHash[event] = eventHash[event] || []).forEach(function(fun){
 			fun.apply(null, args)
 		})
+	}
+}
+
+function storageAvailable(type) {//snipped from: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API/Using_the_Web_Storage_API
+	try {
+		var storage = window[type],
+			x = '__storage_test__';
+		storage.setItem(x, x);
+		storage.removeItem(x);
+		return true;
+	}
+	catch(e) {
+		return false;
 	}
 }

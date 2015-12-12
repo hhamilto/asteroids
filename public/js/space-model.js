@@ -42,11 +42,13 @@ SpaceModel = (function(){
 			var newShip = {
 				location:[0,0],
 				velocity:[0,0],// in pxpms (pixels per millisecond)
-				heading: 0,
-				points: [[0,13],[11,-13],[-11,-13]],
+				heading: Math.PI,
+				coastPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[-13.11,-18]],
+				thrustPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[9,-13],[0,-29],[-9,-13],[-11,-13],[-13.11,-18]],
 				bulletMuzzleSpeed: 11,//pixels per ms
 				deceleration: .0006//in pxpsps
 			}
+			newShip.points = newShip.coastPoints
 			mixinEvents(newShip)
 			return newShip
 		},
@@ -124,13 +126,10 @@ SpaceModel = (function(){
 				lastPaintTime: 0
 			}
 			mixinEvents(newSpace)
-			//XXX too many events
 			newSpace.ship.on('bullet', function(bullet){
 				newSpace.bullets.push(bullet)
 			})
-			newSpace.controls.on('fire', function(){
-				Ships.Fire(newSpace.ship)
-			})
+			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			return newSpace
 		},
 		Paint: function(space){
@@ -190,7 +189,7 @@ SpaceModel = (function(){
 		},
 		ApplyControls: function(space, duration){
 			if(space.controls.desiredHeading != undefined){
-				space.controls.yaw = tiltHeading-space.ship.heading
+				space.controls.yaw = space.controls.desiredHeading-space.ship.heading
 				if(space.controls.yaw > Math.PI)
 					space.controls.yaw-=2*Math.PI
 				if(space.controls.yaw < -Math.PI)
@@ -202,6 +201,11 @@ SpaceModel = (function(){
 			var acceleration = rotate(space.ship.heading,[0,duration*space.controls.accel*space.controls.corrections.accelerationFactor])	
 			space.ship.velocity[0] += acceleration[0]
 			space.ship.velocity[1] += acceleration[1]
+			if(space.controls.accel){
+				space.ship.points = space.ship.thrustPoints
+			}else{
+				space.ship.points = space.ship.coastPoints
+			}
 		},
 		CalculatePointsFORSpace: function(space){
 			Spaces.AllSpaceJunk(space).forEach(UpdatePointsFORSpace)

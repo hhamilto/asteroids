@@ -52,6 +52,9 @@ ControlsAdapter = (function(){
 				console.log("warning, rebinding controls")
 			controls = newControls
 			initialize()
+		},
+		useCorrectionInfo: function(correctionInfo){
+			
 		}
 	}
 }())
