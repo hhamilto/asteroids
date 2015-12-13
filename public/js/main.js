@@ -16,23 +16,22 @@ document.addEventListener("DOMContentLoaded", function(event) {
 		// this device supports tilt functionality
 		if(window.localStorage.tiltCalibration){
 			ControlsAdapter.useCorrectionInfo(JSON.parse(window.localStorage.tiltCalibration))
-			startGameComponent()
+			initializeGameComponent()
 		}else{
 			document.getElementById('calibrate-tilt-settings-view').className = ''
 		}
 	}else{
 		// don't worry about device orientation calibration, show game
 		document.getElementById('game-view').className = ''
-		startGameComponent()
+		initializeGameComponent()
 
 	}
 	
 	blink()
 })
 
-var startGameComponent = function(){
+var initializeGameComponent = function(){
 	var space = SpaceModel.Spaces.Create()
-	ControlsAdapter.bindTo(space.controls)
 	var gameCanvas = document.getElementById('game-screen')
 	var updateScreenDimensions = function(){
 		space.dimensions = [gameCanvas.clientWidth,
@@ -45,7 +44,12 @@ var startGameComponent = function(){
 
 	space.ctx = gameCanvas.getContext('2d')
 
-	space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+	space.ship.location = [-100, -100]// [space.dimensions[0]/2,space.dimensions[1]/2]
+	space.controls.accel = .2
+	space.ship.heading = Math.PI /4
+
+
+	SpaceModel.Autopilot(space)
 
 	gameOverDiv = document.getElementById('game-over')
 	space.on('game-over', function(){
@@ -57,6 +61,14 @@ var startGameComponent = function(){
 		window.requestAnimationFrame(RAF_callback)
 	}
 	window.requestAnimationFrame(RAF_callback)
+
+	var startOverlay = document.getElementById('start-new')
+
+	gameCanvas.addEventListener('click', function(){
+		ControlsAdapter.bindTo(space.controls)
+		startOverlay.className = startOverlay.className+' hidden'
+		//SpaceModel.ClearAutopilot()
+	})
 }
 
 var blink = function(){
@@ -65,11 +77,9 @@ var blink = function(){
 	setInterval(function(){
 		on = !on
 		_.each(elements, on?function(el){
-			el.className = el.className.replace(/(\s+)?\bhidden\b/,' ').trim()
-			console.log(el.className)
+			el.style.opacity = '1'
 		}:function(el){
-			el.className = el.className + ' hidden'
-			console.log(el.className)
+			el.style.opacity = '0'
 		})
 	}, 1000)
 }
