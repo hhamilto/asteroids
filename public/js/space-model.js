@@ -45,7 +45,7 @@ SpaceModel = (function(){
 				heading: Math.PI,
 				coastPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[-13.11,-18]],
 				thrustPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[9,-13],[0,-29],[-9,-13],[-11,-13],[-13.11,-18]],
-				bulletMuzzleSpeed: 11,//pixels per ms
+				bulletMuzzleSpeed: 1,//pixels per ms
 				deceleration: .0006//in pxpsps
 			}
 			newShip.points = newShip.coastPoints
@@ -140,19 +140,12 @@ SpaceModel = (function(){
 			space.ctx.fillRect(0, 0, space.dimensions[0], space.dimensions[1])
 			_.each(Spaces.AllSpaceJunk(space), _.partial(Draw,space.ctx))
 			space.ctx.strokeStyle = '#F0F'
-
-			Draw(space.ctx, getGhostShip(space.ship, space, space.controls))
-			_.each(space.asteroids, function(roid){
-				var groid = getGhostObject(roid, space)
-				Draw(space.ctx, groid)
-			})
-			
 		},
 		MakeGo: function(space, duration, item){
 			item.location[0] = (item.location[0]+(item.velocity[0]*duration)+space.dimensions[0])%space.dimensions[0]
 			item.location[1] = (item.location[1]+(item.velocity[1]*duration)+space.dimensions[1])%space.dimensions[1]
 			if(item.location[0]+'' == 'NaN')
-				throw new Error()
+				throw new Error(item.location[0])
 		},
 		ElapseTime: function(space, duration){
 			// slow ship
@@ -187,7 +180,8 @@ SpaceModel = (function(){
 							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice()),
 							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice()))
 						else
-							space.asteroids.splice(j,1)
+							space.asteroids.splice(j,1),
+							space.emit('asteroid.destroyed')
 						space.bullets.splice(i,1)
 						continue outter
 					}
@@ -232,6 +226,11 @@ SpaceModel = (function(){
 			Spaces.ElapseTime(space,timePast)
 			Spaces.Paint(space)
 			Spaces.ClearPointsFORSpace(space)
+		},
+		SetLevel: function(space, level){
+			space.asteroids = _.range(level*2).map(function(){
+				return Asteroids.Create()
+			})
 		}
 	}
 
@@ -240,7 +239,8 @@ SpaceModel = (function(){
 		var i
 		for(i = 0 ; i < 120; i++){
 			Spaces.ApplyControls(controls, ghostShip, 10)
-			Spaces.MakeGo(space, 10, ghostShip)
+			ghostShip.location[0] += ghostShip.velocity[0]*10
+			ghostShip.location[1] += ghostShip.velocity[1]*10
 		}
 		//get ghost ship dist from ship
 		var dist = distance(ship.location, ghostShip.location)
@@ -295,7 +295,8 @@ SpaceModel = (function(){
 		Spaces: {
 			Create: Spaces.Create,
 			SetDimensions: Spaces.SetDimensions,
-			Update: Spaces.Update
+			Update: Spaces.Update,
+			SetLevel: Spaces.SetLevel
 		},
 		Ships: {
 			Fire: Ships.Fire

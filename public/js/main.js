@@ -1,7 +1,6 @@
 
 window.onerror = function(error) {
     alert(error);
-    alert(Object.keys(error));
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
@@ -44,7 +43,7 @@ var initializeGameComponent = function(){
 
 	space.ctx = gameCanvas.getContext('2d')
 
-	space.ship.location = [-100, -100]// [space.dimensions[0]/2,space.dimensions[1]/2]
+	space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
 	space.controls.accel = .2
 	space.ship.heading = Math.PI /4
 
@@ -52,10 +51,7 @@ var initializeGameComponent = function(){
 	SpaceModel.Autopilot(space)
 
 	gameOverDiv = document.getElementById('game-over')
-	space.on('game-over', function(){
-		gameOverDiv.className = ''
-	})
-	
+
 	var RAF_callback = function(currentTime){
 		SpaceModel.Spaces.Update(space, currentTime)
 		window.requestAnimationFrame(RAF_callback)
@@ -63,12 +59,29 @@ var initializeGameComponent = function(){
 	window.requestAnimationFrame(RAF_callback)
 
 	var startOverlay = document.getElementById('start-new')
+	gameStarted = false
 
-	gameCanvas.addEventListener('click', function(){
+	space.on('game-over', function(){
+		if(gameStarted)
+			gameOverDiv.className = ''
+	})
+	var startGame = function(){
+		gameCanvas.removeEventListener('click', startGame)
+		var level = 1
 		ControlsAdapter.bindTo(space.controls)
 		startOverlay.className = startOverlay.className+' hidden'
-		//SpaceModel.ClearAutopilot()
-	})
+		SpaceModel.ClearAutopilot()
+		space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+		space.controls.accel = 0
+		space.ship.heading = Math.PI
+		gameStarted = true
+		SpaceModel.Spaces.SetLevel(space,level)
+		space.on('asteroid.destroyed', function(){
+			if(space.asteroids.length == 0)
+				SpaceModel.Spaces.SetLevel(space,++level)
+		})
+	}
+	gameCanvas.addEventListener('click', startGame)
 }
 
 var blink = function(){
