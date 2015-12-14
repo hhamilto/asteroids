@@ -163,13 +163,13 @@ SpaceModel = (function(){
 		AllSpaceJunk: function(space){
 			return space.bullets.concat(space.ship, space.asteroids)
 		},
-		Collide: function(space){
+		Collide: function(space, duration){
 			var i,j
 			var shipPoints = space.ship.pointsFORSpace
 			var bulletLines = space.bullets.map(function(bullet){
 				return [bullet.location,
-				        [(bullet.location[0]-bullet.velocity[0]),
-				         (bullet.location[1]-bullet.velocity[1])]]
+				        [bullet.location[0]-(bullet.velocity[0]*duration),
+				         bullet.location[1]-(bullet.velocity[1]*duration)]]
 			})
 			outter: for(j = 0; j < space.asteroids.length; j++){
 				for(i = 0; i< bulletLines.length; i++){
