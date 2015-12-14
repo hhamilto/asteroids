@@ -265,6 +265,7 @@ SpaceModel = (function(){
 
 	var api 
 	var Autopilot = function(space){
+		space.controls.accel = .2
 		//fake drive ship
 		api = setInterval(function(){
 			var i,j

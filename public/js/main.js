@@ -44,7 +44,6 @@ var initializeGameComponent = function(){
 	space.ctx = gameCanvas.getContext('2d')
 
 	space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
-	space.controls.accel = .2
 	space.ship.heading = Math.PI /4
 
 
@@ -61,18 +60,25 @@ var initializeGameComponent = function(){
 	var startOverlay = document.getElementById('start-new')
 	gameStarted = false
 
-	space.on('game-over', function(){
-		if(gameStarted)
-			gameOverDiv.className = ''
-	})
+	var endGame = function(){
+		if(gameStarted){
+			gameOverDiv.className = gameOverDiv.className.replace(/ ?hidden ?/,' ').trim()
+			SpaceModel.Autopilot(space)
+			gameStarted = false
+		}
+	}
+
+	space.on('game-over', endGame)
 	var startGame = function(){
+		startOverlay.className = startOverlay.className+' hidden'
 		gameCanvas.removeEventListener('click', startGame)
 		var level = 1
 		ControlsAdapter.bindTo(space.controls)
-		startOverlay.className = startOverlay.className+' hidden'
 		SpaceModel.ClearAutopilot()
 		space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+		space.ship.velocity = [0,0]
 		space.controls.accel = 0
+		space.controls.yaw = 0
 		space.ship.heading = Math.PI
 		gameStarted = true
 		SpaceModel.Spaces.SetLevel(space,level)
