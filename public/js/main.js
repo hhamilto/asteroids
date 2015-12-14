@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 var initializeGameComponent = function(){
 	var space = SpaceModel.Spaces.Create()
 	var gameCanvas = document.getElementById('game-screen')
+	space.ctx = gameCanvas.getContext('2d')
 	var updateScreenDimensions = function(){
 		space.dimensions = [gameCanvas.clientWidth,
 		                    gameCanvas.clientHeight]
@@ -41,36 +42,9 @@ var initializeGameComponent = function(){
 	updateScreenDimensions()
 	window.addEventListener('resize',_.throttle(updateScreenDimensions, 100))
 
-	space.ctx = gameCanvas.getContext('2d')
-
-	space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
-	space.ship.heading = Math.PI /4
-
-
-	SpaceModel.Autopilot(space)
-
 	gameOverDiv = document.getElementById('game-over')
-
-	var RAF_callback = function(currentTime){
-		SpaceModel.Spaces.Update(space, currentTime)
-		window.requestAnimationFrame(RAF_callback)
-	}
-	window.requestAnimationFrame(RAF_callback)
-
-	var startOverlay = document.getElementById('start-new')
-	gameStarted = false
-
-	var endGame = function(){
-		if(gameStarted){
-			gameOverDiv.className = gameOverDiv.className.replace(/ ?hidden ?/,' ').trim()
-			SpaceModel.Autopilot(space)
-			gameStarted = false
-		}
-	}
-
-	space.on('game-over', endGame)
 	var startGame = function(){
-		startOverlay.className = startOverlay.className+' hidden'
+		gameOverDiv.className = gameOverDiv.className+' hidden'
 		gameCanvas.removeEventListener('click', startGame)
 		var level = 1
 		ControlsAdapter.bindTo(space.controls)
@@ -87,7 +61,31 @@ var initializeGameComponent = function(){
 				SpaceModel.Spaces.SetLevel(space,++level)
 		})
 	}
-	gameCanvas.addEventListener('click', startGame)
+	var endGame = function(){
+		if(gameStarted){
+			gameOverDiv.className = gameOverDiv.className.replace(/ ?hidden ?/,' ').trim()
+			SpaceModel.Autopilot(space)
+			gameStarted = false
+			ControlsAdapter.unbind()
+			gameCanvas.addEventListener('click', startGame)
+		}
+	}
+
+	space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+	space.ship.heading = Math.PI /4
+
+	var gameStarted = true
+	endGame()
+	space.on('game-over', endGame)
+	space.on('game-over', function(){
+		document.querySelectorAll('#game-over p:first-child')[0].className=''
+	})
+
+	var RAF_callback = function(currentTime){
+		SpaceModel.Spaces.Update(space, currentTime)
+		window.requestAnimationFrame(RAF_callback)
+	}
+	window.requestAnimationFrame(RAF_callback)
 }
 
 var blink = function(){

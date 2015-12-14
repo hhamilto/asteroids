@@ -53,9 +53,9 @@ ControlsAdapter = (function(){
 		window.removeEventListener('keydown', windowKeyDown)
 		window.removeEventListener('keyup', windowKeyUp)
 		window.removeEventListener("deviceorientation", windowDeviceOrientation)
-		throttleDiv.removeEventListener("touchstart", throttleDivTouchStart)
-		throttleDiv.removeEventListener("touchend", throttleDivTouchEnd)
-		gameCanvas.removeEventListener("touchstart", gameCanvasTouchStart)
+		throttleDiv && throttleDiv.removeEventListener("touchstart", throttleDivTouchStart)
+		throttleDiv && throttleDiv.removeEventListener("touchend", throttleDivTouchEnd)
+		gameCanvas && gameCanvas.removeEventListener("touchstart", gameCanvasTouchStart)
 	}
 		
 	return {

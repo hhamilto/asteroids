@@ -17,11 +17,13 @@
 		<div id="game-view" class="hidden">
 			<canvas id="game-screen"></canvas>
 			<img id="throttle-control" class="hidden" src="/img/accel.svg">
-			<div id="game-over" class="blink hidden centered-overlay">
-				GAME OVER
-			</div>
-			<div id="start-new" class="blink centered-overlay">
-				TOUCH TO START
+			<div id="game-over" class="blink centered-overlay">
+				<p class="hidden">
+					GAME OVER
+				</p>
+				<p>
+					TOUCH TO START
+				</p>
 			</div>
 		</div>
 
@@ -32,7 +34,6 @@
 
 	<script src="js/util.js"></script>
 	<script src="js/space-model.js"></script>
-	<script src="js/game-controller.js"></script>
 	<script src="js/ui-to-controls-adapter.js"></script>
 	<script src="js/main.js"></script>
 </body>
