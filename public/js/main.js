@@ -41,12 +41,13 @@ var initializeGameComponent = function(){
 	}
 	updateScreenDimensions()
 	window.addEventListener('resize',_.throttle(updateScreenDimensions, 100))
-
-	gameOverDiv = document.getElementById('game-over')
+	var scoreDiv = document.getElementById('score')
+	var gameOverDiv = document.getElementById('game-over')
 	var startGame = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
 		gameCanvas.removeEventListener('click', startGame)
 		var level = 1
+		var score = 0
 		ControlsAdapter.bindTo(space.controls)
 		SpaceModel.ClearAutopilot()
 		space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
@@ -56,7 +57,10 @@ var initializeGameComponent = function(){
 		space.ship.heading = Math.PI
 		gameStarted = true
 		SpaceModel.Spaces.SetLevel(space,level)
-		space.on('asteroid.destroyed', function(){
+		space.on('asteroid.destroyed', function(roid){
+			console.log(roid.size)
+			score += ['invalid roid size',1000,500,250][roid.size]
+			scoreDiv.innerHTML = score
 			if(space.asteroids.length == 0)
 				SpaceModel.Spaces.SetLevel(space,++level)
 		})

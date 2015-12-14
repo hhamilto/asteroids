@@ -31,7 +31,7 @@ SpaceModel = (function(){
 				location: location,
 				velocity: velocity,
 				points: [[2,2],[2,-2],[-2,-2],[-2,2]],
-				death: Date.now()+900,
+				death: Date.now()+900000,
 				heading:0
 			}
 		}
@@ -45,7 +45,7 @@ SpaceModel = (function(){
 				heading: Math.PI,
 				coastPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[-13.11,-18]],
 				thrustPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[9,-13],[0,-29],[-9,-13],[-11,-13],[-13.11,-18]],
-				bulletMuzzleSpeed: 1,//pixels per ms
+				bulletMuzzleSpeed: .8,//pixels per ms
 				deceleration: .0006//in pxpsps
 			}
 			newShip.points = newShip.coastPoints
@@ -129,7 +129,8 @@ SpaceModel = (function(){
 			}
 			mixinEvents(newSpace)
 			newSpace.ship.on('bullet', function(bullet){
-				newSpace.bullets.push(bullet)
+				// if(newSpace.bullets.length < 10)
+					newSpace.bullets.push(bullet)
 			})
 			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			return newSpace
@@ -175,13 +176,14 @@ SpaceModel = (function(){
 				for(i = 0; i< bulletLines.length; i++){
 					//turn bullet into a line
 					if(Asteroids.Collides(space.asteroids[j], bulletLines[i])){
+						var destroidRoid = space.asteroids[j]
 						if(space.asteroids[j].size != 1)
 							space.asteroids.splice(j,1, 
 							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice()),
 							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice()))
 						else
-							space.asteroids.splice(j,1),
-							space.emit('asteroid.destroyed')
+							space.asteroids.splice(j,1)
+						space.emit('asteroid.destroyed', destroidRoid)
 						space.bullets.splice(i,1)
 						continue outter
 					}
