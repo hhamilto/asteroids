@@ -31,7 +31,7 @@ SpaceModel = (function(){
 				location: location,
 				velocity: velocity,
 				points: [[2,2],[2,-2],[-2,-2],[-2,2]],
-				death: Date.now()+900000,
+				death: Date.now()+900,
 				heading:0
 			}
 		}
@@ -64,7 +64,8 @@ SpaceModel = (function(){
 
 	BASE_ASTEROID_RADIUS = 10
 	var Asteroids = {
-		Create: function(size,location){
+		Create: function(size,location, baseVelocity){
+			baseVelocity = baseVelocity || [0,0]
 			size = size || 3
 			location = location || [Math.random()*3000,Math.random()*3000]
 			var ASTEROID_RADIUS = BASE_ASTEROID_RADIUS*size
@@ -75,7 +76,7 @@ SpaceModel = (function(){
 			var initialHeading = Math.random()*Math.PI*2
 			var newAsteroid = {
 				location: location,
-				velocity: rotate(initialHeading, [0,initialVelocity]),
+				velocity: addPoints(baseVelocity,rotate(initialHeading, [0,initialVelocity])),
 				heading: initialHeading,
 				size:size,
 				points: _.range(numPoints).map(function(pointIndex){
@@ -129,7 +130,7 @@ SpaceModel = (function(){
 			}
 			mixinEvents(newSpace)
 			newSpace.ship.on('bullet', function(bullet){
-				// if(newSpace.bullets.length < 10)
+				if(newSpace.bullets.length < 5)
 					newSpace.bullets.push(bullet)
 			})
 			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
@@ -179,8 +180,8 @@ SpaceModel = (function(){
 						var destroidRoid = space.asteroids[j]
 						if(space.asteroids[j].size != 1)
 							space.asteroids.splice(j,1, 
-							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice()),
-							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice()))
+							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice(), space.asteroids[j].velocity.slice()),
+							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice(), space.asteroids[j].velocity.slice()))
 						else
 							space.asteroids.splice(j,1)
 						space.emit('asteroid.destroyed', destroidRoid)
@@ -207,7 +208,8 @@ SpaceModel = (function(){
 			var acceleration = rotate(ship.heading,[0,duration*controls.accel*controls.corrections.accelerationFactor])	
 			ship.velocity[0] += acceleration[0]
 			ship.velocity[1] += acceleration[1]
-			if(controls.accel){
+			
+			if(controls.accel && (Math.floor(duration)%2==0)){
 				ship.points = ship.thrustPoints
 			}else{
 				ship.points = ship.coastPoints

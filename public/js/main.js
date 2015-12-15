@@ -47,7 +47,8 @@ var initializeGameComponent = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
 		gameCanvas.removeEventListener('click', startGame)
 		var level = 1
-		var score = 0
+		score = 0
+		scoreDiv.innerHTML = score
 		ControlsAdapter.bindTo(space.controls)
 		SpaceModel.ClearAutopilot()
 		space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
@@ -57,14 +58,15 @@ var initializeGameComponent = function(){
 		space.ship.heading = Math.PI
 		gameStarted = true
 		SpaceModel.Spaces.SetLevel(space,level)
-		space.on('asteroid.destroyed', function(roid){
-			console.log(roid.size)
-			score += ['invalid roid size',1000,500,250][roid.size]
-			scoreDiv.innerHTML = score
-			if(space.asteroids.length == 0)
-				SpaceModel.Spaces.SetLevel(space,++level)
-		})
+		
 	}
+	var score
+	space.on('asteroid.destroyed', function(roid){
+		score += ['invalid roid size',100,50,25][roid.size]
+		scoreDiv.innerHTML = score
+		if(space.asteroids.length == 0)
+			SpaceModel.Spaces.SetLevel(space,++level)
+	})
 	var endGame = function(){
 		if(gameStarted){
 			gameOverDiv.className = gameOverDiv.className.replace(/ ?hidden ?/,' ').trim()
