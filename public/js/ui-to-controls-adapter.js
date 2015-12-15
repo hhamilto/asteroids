@@ -10,7 +10,7 @@ ControlsAdapter = (function(){
 		else if(e.keyCode == ' '.charCodeAt(0))
 			controls.emit('fire')
 		else if(e.keyCode == 'P'.charCodeAt(0))
-			alert('Paused')
+			controls.emit('toggle-pause')
 	}
 	var windowKeyUp = function(e){
 		if(e.keyCode == 'A'.charCodeAt(0) || e.keyCode == 37)

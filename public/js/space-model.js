@@ -126,7 +126,8 @@ SpaceModel = (function(){
 				ship: Ships.Create(),
 				controls: Controls.Create(),
 				bullets: [],
-				lastPaintTime: 0
+				lastPaintTime: 0,
+				paused: false,
 			}
 			mixinEvents(newSpace)
 			newSpace.ship.on('bullet', function(bullet){
@@ -134,6 +135,10 @@ SpaceModel = (function(){
 					newSpace.bullets.push(bullet)
 			})
 			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
+			newSpace.controls.on('toggle-pause', function(){
+				newSpace.paused=!newSpace.paused
+				newSpace.emit('pause-state-change', newSpace.paused)
+			})
 			return newSpace
 		},
 		Paint: function(space){
@@ -224,6 +229,8 @@ SpaceModel = (function(){
 		Update: function(space, currentTime){
 			var timePast = currentTime-space.lastPaintTime
 			space.lastPaintTime = currentTime
+			if(space.paused)
+				return
 			Spaces.CalculatePointsFORSpace(space)
 			Spaces.ApplyControls(space.controls,space.ship,timePast)
 			Spaces.Collide(space,timePast)

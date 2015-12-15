@@ -87,12 +87,19 @@ var initializeGameComponent = function(){
 	space.on('game-over', function(){
 		document.querySelectorAll('#game-over p:first-child')[0].className=''
 	})
-
+	pauseDiv = document.getElementById('game-paused')
+	space.on('pause-state-change', function(isPaused){
+		console.log('asd'+isPaused)
+		setHiddeness(pauseDiv, !isPaused)//hide if not paused
+	})
 	var RAF_callback = function(currentTime){
 		SpaceModel.Spaces.Update(space, currentTime)
 		window.requestAnimationFrame(RAF_callback)
 	}
 	window.requestAnimationFrame(RAF_callback)
+
+
+	//OrientationCatcher.init(space)
 }
 
 var blink = function(){
