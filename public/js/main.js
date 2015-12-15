@@ -43,9 +43,10 @@ var initializeGameComponent = function(){
 	window.addEventListener('resize',_.throttle(updateScreenDimensions, 100))
 	var scoreDiv = document.getElementById('score')
 	var gameOverDiv = document.getElementById('game-over')
+	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
-		gameCanvas.removeEventListener('click', startGame)
+		gameViewDiv.removeEventListener('click', startGame)
 		var level = 1
 		score = 0
 		scoreDiv.innerHTML = score
@@ -73,7 +74,7 @@ var initializeGameComponent = function(){
 			SpaceModel.Autopilot(space)
 			gameStarted = false
 			ControlsAdapter.unbind()
-			gameCanvas.addEventListener('click', startGame)
+			gameViewDiv.addEventListener('click', startGame)
 		}
 	}
 
