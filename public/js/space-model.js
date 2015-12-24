@@ -89,6 +89,10 @@ SpaceModel = (function(){
 			return newAsteroid
 		},
 		Collides: function(asteroid, line){
+			//use a kind of bounding "circle"
+			if(     distance(asteroid.location, line[0]) > BASE_ASTEROID_RADIUS *2 &
+			        distance(asteroid.location, line[1]) > BASE_ASTEROID_RADIUS *2)
+				return false
 			var i
 			var points = asteroid.pointsFORSpace.slice()
 			points.push(points[0])
@@ -229,12 +233,13 @@ SpaceModel = (function(){
 		Update: function(space, currentTime){
 			var timePast = currentTime-space.lastPaintTime
 			space.lastPaintTime = currentTime
-			if(space.paused)
-				return
+
 			Spaces.CalculatePointsFORSpace(space)
-			Spaces.ApplyControls(space.controls,space.ship,timePast)
-			Spaces.Collide(space,timePast)
-			Spaces.ElapseTime(space,timePast)
+			if(!space.paused){
+				Spaces.ApplyControls(space.controls,space.ship,timePast)
+				Spaces.Collide(space,timePast)
+				Spaces.ElapseTime(space,timePast)
+			}
 			Spaces.Paint(space)
 			Spaces.ClearPointsFORSpace(space)
 		},

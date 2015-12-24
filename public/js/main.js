@@ -1,8 +1,4 @@
 
-window.onerror = function(error) {
-    alert(error);
-}
-
 document.addEventListener("DOMContentLoaded", function(event) {
 	var globalTouchHandler = function(){
 		//show throttle button
@@ -39,15 +35,19 @@ var initializeGameComponent = function(){
 		gameCanvas.setAttribute('width', space.dimensions[0])
 		gameCanvas.setAttribute('height', space.dimensions[1])
 	}
+	var windowResizeHandler = function(e){
+		updateScreenDimensions()
+		window.scrollTo(0,0)
+	}
 	updateScreenDimensions()
-	window.addEventListener('resize',_.throttle(updateScreenDimensions, 100))
+	window.addEventListener('resize',_.throttle(windowResizeHandler, 100))
 	var scoreDiv = document.getElementById('score')
 	var gameOverDiv = document.getElementById('game-over')
 	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)
-		var level = 1
+		level = 1
 		score = 0
 		scoreDiv.innerHTML = score
 		ControlsAdapter.bindTo(space.controls)
@@ -62,6 +62,7 @@ var initializeGameComponent = function(){
 		
 	}
 	var score
+	var level
 	space.on('asteroid.destroyed', function(roid){
 		score += ['invalid roid size',100,50,25][roid.size]
 		scoreDiv.innerHTML = score
@@ -92,6 +93,7 @@ var initializeGameComponent = function(){
 		console.log('asd'+isPaused)
 		setHiddeness(pauseDiv, !isPaused)//hide if not paused
 	})
+	OrientationPauseSafe.initialize(space)
 	var RAF_callback = function(currentTime){
 		SpaceModel.Spaces.Update(space, currentTime)
 		window.requestAnimationFrame(RAF_callback)
@@ -99,7 +101,6 @@ var initializeGameComponent = function(){
 	window.requestAnimationFrame(RAF_callback)
 
 
-	//OrientationCatcher.init(space)
 }
 
 var blink = function(){
