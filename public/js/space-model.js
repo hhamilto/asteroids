@@ -138,6 +138,10 @@ SpaceModel = (function(){
 				if(newSpace.bullets.length < 5)
 					newSpace.bullets.push(bullet)
 			})
+			newSpace.ship.on('death',function(){
+				if(!newSpace.lives)
+					newSpace.emit('game-over')
+			})
 			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			newSpace.controls.on('toggle-pause', function(){
 				newSpace.paused=!newSpace.paused
@@ -199,8 +203,11 @@ SpaceModel = (function(){
 					}
 				}
 				for(i = 0; i< shipPoints.length; i++)
-					if(Asteroids.Collides(space.asteroids[j],[shipPoints[i],shipPoints[(i+1)%shipPoints.length]]))
-						space.emit('game-over')
+					if(Asteroids.Collides(space.asteroids[j],[shipPoints[i],shipPoints[(i+1)%shipPoints.length]])){
+						space.lives--
+						space.ship.emit('death')
+						return
+					}
 			}
 		},
 		ApplyControls: function(controls, ship, duration){
@@ -281,9 +288,9 @@ SpaceModel = (function(){
 
 	var api 
 	var Autopilot = function(space){
-		space.controls.accel = .2
 		//fake drive ship
 		api = setInterval(function(){
+			space.controls.accel = .2
 			var i,j
 			//if we are about to hit an asteroid turn right, else straight
 			var ghostShip = getGhostShip(space.ship, space, space.controls)

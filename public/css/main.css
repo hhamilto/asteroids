@@ -79,13 +79,19 @@ html,body {
 }
 
 
-#score {
+#monitor {
 	width: 100%;
 	position: absolute;
 	top: 0;
 	left: 0;
 	padding: 10px;
 	box-sizing: border-box;
+	font-size: 30px;
+}
+
+#monitor p {
+	padding: 0;
+	margin: 0;
 }
 
 #orientation-data {
@@ -125,4 +131,8 @@ html,body {
 	position: absolute;
 	top:0;
 	left:0;
+}
+
+.life {
+	margin-right:5px;
 }

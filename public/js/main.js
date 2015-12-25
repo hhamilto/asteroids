@@ -41,6 +41,14 @@ var initializeGameComponent = function(){
 		updateScreenDimensions()
 		window.scrollTo(0,0)
 	}
+	var livesDiv = document.getElementById('lives')
+	var shipImgTemplate = document.querySelectorAll('#ship-template img')[0]
+	var setLives = function(lives){
+		if(lives<0) throw Error('What good is a negative life?g')
+		livesDiv.innerHTML = ''
+		while(lives--)
+			livesDiv.appendChild(shipImgTemplate.cloneNode(true))
+	}
 	updateScreenDimensions()
 	window.addEventListener('resize',_.throttle(windowResizeHandler, 100))
 	var scoreDiv = document.getElementById('score')
@@ -61,8 +69,18 @@ var initializeGameComponent = function(){
 		space.ship.heading = Math.PI
 		gameStarted = true
 		SpaceModel.Spaces.SetLevel(space,level)
-		
+		space.lives = 3
+		setLives(space.lives)
 	}
+	space.ship.on('death', function(){
+		space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+		space.ship.velocity = [0,0]
+		space.controls.accel = 0
+		space.controls.yaw = 0
+		space.ship.heading = Math.PI
+		
+		setLives(space.lives)
+	})
 	var score
 	var level
 	space.on('asteroid.destroyed', function(roid){
@@ -92,7 +110,6 @@ var initializeGameComponent = function(){
 	})
 	pauseDiv = document.getElementById('game-paused')
 	space.on('pause-state-change', function(isPaused){
-		console.log('asd'+isPaused)
 		setHiddeness(pauseDiv, !isPaused)//hide if not paused
 	})
 	OrientationPauseSafe.initialize(space)
