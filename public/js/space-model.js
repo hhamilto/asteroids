@@ -139,6 +139,7 @@ SpaceModel = (function(){
 					newSpace.bullets.push(bullet)
 			})
 			newSpace.ship.on('death',function(){
+				Spaces.CenterStopShip(newSpace)
 				if(!newSpace.lives)
 					newSpace.emit('game-over')
 			})
@@ -254,6 +255,13 @@ SpaceModel = (function(){
 			space.asteroids = _.range(level*2).map(function(){
 				return Asteroids.Create()
 			})
+		},
+		CenterStopShip: function(space){
+			space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+			space.ship.velocity = [0,0]
+			space.controls.accel = 0
+			space.controls.yaw = 0
+			space.ship.heading = Math.PI	
 		}
 	}
 
@@ -320,7 +328,8 @@ SpaceModel = (function(){
 			Create: Spaces.Create,
 			SetDimensions: Spaces.SetDimensions,
 			Update: Spaces.Update,
-			SetLevel: Spaces.SetLevel
+			SetLevel: Spaces.SetLevel,
+			CenterStopShip: Spaces.CenterStopShip
 		},
 		Ships: {
 			Fire: Ships.Fire
