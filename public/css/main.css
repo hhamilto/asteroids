@@ -13,15 +13,23 @@ html,body {
 	height: 100%;
 	padding: 0;
 	margin: 0;
-	color:white;
+	color: white;
 	font-family: 'Bespoke-50s';
 	letter-spacing: 0.3em;
 }
 
 
 #game-view {
-	width:100%;
-	height: 100%
+	width: 100%;
+	height: 100%;
+	position: absolute;
+}
+
+#calibrate-tilt-settings-view {
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	background-color: black;
 }
 
 #game-screen{
@@ -75,6 +83,34 @@ html,body {
 	width: 100%;
 	position: absolute;
 	top: 0;
+	left: 0;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+#orientation-data {
+	width: 100%;
+	position: absolute;
+	top: 40px;
+	left: 0;
+	padding: 10px;
+	box-sizing: border-box;
+	background: red;
+}
+
+#bg-data {
+	width: 100%;
+	position: absolute;
+	top: 80px;
+	left: 0;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+#console {
+	width: 100%;
+	position: absolute;
+	top: 160px;
 	left: 0;
 	padding: 10px;
 	box-sizing: border-box;

@@ -7,21 +7,23 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	}
 	window.addEventListener("touchstart", globalTouchHandler)
 
-	if(window.ondeviceorientation){
-		// this device supports tilt functionality
-		if(window.localStorage.tiltCalibration){
-			ControlsAdapter.useCorrectionInfo(JSON.parse(window.localStorage.tiltCalibration))
-			initializeGameComponent()
-		}else{
-			document.getElementById('calibrate-tilt-settings-view').className = ''
+	globalDeviceOrientationHandler = function(e){
+		if(e.beta){
+			//e.beta means that the event has actual orientation data, and isn't just a dummy event
+			if(window.localStorage.tiltCalibration){
+				ControlsAdapter.useCorrectionInfo(JSON.parse(window.localStorage.tiltCalibration))
+			}else{
+				doTiltCalibration()
+			}
+			window.removeEventListener("deviceorientation", globalDeviceOrientationHandler)
 		}
-	}else{
-		// don't worry about device orientation calibration, show game
-		document.getElementById('game-view').className = ''
-		initializeGameComponent()
 
 	}
+	window.addEventListener("deviceorientation", globalDeviceOrientationHandler)
 	
+	initializeGameComponent()
+
+		
 	blink()
 })
 
@@ -99,8 +101,72 @@ var initializeGameComponent = function(){
 		window.requestAnimationFrame(RAF_callback)
 	}
 	window.requestAnimationFrame(RAF_callback)
+}
 
+var doTiltCalibration = function(){
+	var tiltCalibrationDiv = document.getElementById('calibrate-tilt-settings-view')
+	tiltCalibrationDiv.className = ''
+	var outDiv = document.getElementById('orientation-data')
+	var stepsDiv = document.querySelectorAll('#calibrate-tilt-settings-view > .centered-overlay > p')
+	var stepNumber = 0
+	var progressTestStepPage = function(){
+		stepsDiv[stepNumber++].className = 'hidden'
+		stepsDiv[stepNumber].className = ''
+	}
+	startTest = function(){
+		progressTestStepPage()
+		tiltCalibrationDiv.removeEventListener(startTest)
+		calibrationStep = 'left'
+		window.addEventListener('deviceorientation', orientationListener)
+		tiltCalibrationDiv.removeEventListener('touchstart', startTest)
+	}
+	var calibrationStep = ''
+	tiltCalibrationDiv.addEventListener('touchstart', startTest)
+	var correctionInfo = {
+	}
+	var calibrationPause = 0
+	var orientationListener = function(e){
+		if(Date.now() < calibrationPause){
+			return
+		}
+		document.getElementById('bg-data').innerHTML = zeroPad(floor(e.gamma,2),2)+'<br/>'+zeroPad(floor(e.beta,2),2)
+		if(calibrationStep == 'left'){
+			if(Math.abs(e.gamma-e.beta) > 30){
+				//we have a clear distinction
+				if(Math.abs(e.gamma)>Math.abs(e.beta)){
+					//side to side is gamma
+					correctionInfo.x = ['gamma',-e.gamma/Math.abs(e.gamma)]
+				}else{
+					//side to side is beta
+					correctionInfo.x = ['beta',-e.beta/Math.abs(e.beta)]
+				}
 
+				calibrationStep = 'up'
+				calibrationPause = Date.now()+1500
+				progressTestStepPage()
+			}
+		}else if(calibrationStep == 'up'){
+			if(Math.abs(e.gamma-e.beta) > 30){
+				//we have a clear distinction
+				if(Math.abs(e.gamma)>Math.abs(e.beta)){
+					//side to side is gamma
+					correctionInfo.y = ['gamma',-e.gamma/Math.abs(e.gamma)]
+				}else{
+					//side to side is beta
+					correctionInfo.y = ['beta',-e.beta/Math.abs(e.beta)]
+				}
+				//window.removeEventListener(orientationListener)
+				ControlsAdapter.useCorrectionInfo(correctionInfo)
+				document.getElementById('console').innerHTML = JSON.stringify(correctionInfo)
+				tiltCalibrationDiv.className = 'hidden'
+				calibrationStep = ''
+			}
+		}
+	}
+}
+
+var floor = function(num, places){
+	return Math.floor(num*Math.pow(10,places))/Math.pow(10,places)
 }
 
 var blink = function(){
@@ -114,4 +180,15 @@ var blink = function(){
 			el.style.opacity = '0'
 		})
 	}, 1000)
+}
+
+function zeroPad(num, numZeros) {
+    var n = Math.abs(num);
+    var zeros = Math.max(0, numZeros - Math.floor(n).toString().length );
+    var zeroString = Math.pow(10,zeros).toString().substr(1);
+    if( num < 0 ) {
+        zeroString = '-' + zeroString;
+    }
+
+    return zeroString+n;
 }

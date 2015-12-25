@@ -11,27 +11,47 @@
 	<link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-		<div id="calibrate-tilt-settings-view" class="hidden">
-			Please tilt the device
+	<div id="game-view">
+		<canvas id="game-screen"></canvas>
+		<img id="throttle-control" class="hidden" src="/img/accel.svg">
+		<div id="game-over" class="blink centered-overlay">
+			<p class="hidden">
+				GAME OVER
+			</p>
+			<p>
+				TOUCH TO START
+			</p>
 		</div>
-		<div id="game-view" class="hidden">
-			<canvas id="game-screen"></canvas>
-			<img id="throttle-control" class="hidden" src="/img/accel.svg">
-			<div id="game-over" class="blink centered-overlay">
-				<p class="hidden">
-					GAME OVER
-				</p>
-				<p>
-					TOUCH TO START
-				</p>
-			</div>
-			<div id="game-paused" class="blink centered-overlay hidden">
-				PAUSED
-			</div>
-			<div id="score">
+		<div id="game-paused" class="blink centered-overlay hidden">
+			PAUSED
+		</div>
+		<div id="score">
 			0
-			</div>
 		</div>
+		<div id="orientation-data" class="hidden">
+			asdsadsadddddddddddddddddddddds
+		</div>
+		<div id="bg-data" class="hidden">
+			asdsadsadddddddddddddddddddddds
+		</div>
+		<div id="console" class="hidden">
+			asdsadsadddddddddddddddddddddds
+		</div>
+	</div>
+	<div id="calibrate-tilt-settings-view" class="hidden">
+		TILT CONTROL CALIBRATION PROCEEDURE
+		<div class="centered-overlay">
+			<p class="">
+			HOLD YOUR DEVICE FLAT, THEN TAP THE SCREEN TO CONTINUE
+			</p>
+			<p class="hidden">
+				<= TILT LEFT
+			</p>
+			<p class="hidden">
+				TILT UP ^
+			</p>
+		</div>
+	</div>
 
 
 	<!--script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.7.0/lodash.min.js"></script-->

@@ -31,7 +31,7 @@ SpaceModel = (function(){
 				location: location,
 				velocity: velocity,
 				points: [[2,2],[2,-2],[-2,-2],[-2,2]],
-				death: Date.now()+900,
+				death: Date.now()+850,
 				heading:0
 			}
 		}

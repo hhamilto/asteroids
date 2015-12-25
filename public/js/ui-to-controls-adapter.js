@@ -20,11 +20,20 @@ ControlsAdapter = (function(){
 		else if(e.keyCode == 'W'.charCodeAt(0) || e.keyCode == 38)
 			controls.accel=0
 	}
+	var correctionInfo = {
+		x:['beta',1],
+		y:['gamma',-1]
+	}
+	var t = false
 	var windowDeviceOrientation = function(e){
-		//beta/gamma
-		var tiltHeading = -Math.atan2(e.beta,-e.gamma)
+		var x = e[correctionInfo.x[0]]*correctionInfo.x[1]
+		var y = e[correctionInfo.y[0]]*correctionInfo.y[1]
+		var tiltHeading = -Math.atan2(x,y)
 		tiltHeading = (tiltHeading+(Math.PI*2))%(Math.PI*2)
 		controls.desiredHeading = tiltHeading
+		document.getElementById('orientation-data').style.background = t?'black':'red'
+		t=!t
+		document.getElementById('orientation-data').innerHTML = tiltHeading
 	}
 	var gameCanvas
 	var throttleDiv
@@ -38,6 +47,7 @@ ControlsAdapter = (function(){
 	}
 	var gameCanvasTouchStart = function(e){
 		controls.emit('fire')
+		e.preventDefault()
 	}
 	var initialize = function(){
 		window.addEventListener('keydown', windowKeyDown)
@@ -69,8 +79,8 @@ ControlsAdapter = (function(){
 			controls = null
 			removeListeners()
 		},
-		useCorrectionInfo: function(correctionInfo){
-			
+		useCorrectionInfo: function(newCorrectionInfo){
+			correctionInfo = newCorrectionInfo
 		}
 	}
 }())
