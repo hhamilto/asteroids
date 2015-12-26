@@ -57,27 +57,17 @@ var initializeGameComponent = function(){
 	var startGame = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)
-		level = 1
-		score = 0
-		scoreDiv.innerHTML = score
+		SpaceModel.Spaces.StartGame(space)
+		scoreDiv.innerHTML = space.score
 		ControlsAdapter.bindTo(space.controls)
-		SpaceModel.ClearAutopilot()
-		SpaceModel.Spaces.CenterStopShip(space)
 		gameStarted = true
-		SpaceModel.Spaces.SetLevel(space,level)
-		space.lives = 3
 		setLives(space.lives)
 	}
 	space.ship.on('death', function(){
 		setLives(space.lives)
 	})
-	var score
-	var level
 	space.on('asteroid.destroyed', function(roid){
-		score += ['invalid roid size',100,50,25][roid.size]
-		scoreDiv.innerHTML = score
-		if(space.asteroids.length == 0)
-			SpaceModel.Spaces.SetLevel(space,++level)
+		scoreDiv.innerHTML = space.score
 	})
 	var endGame = function(){
 		if(gameStarted){

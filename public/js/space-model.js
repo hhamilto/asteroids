@@ -148,6 +148,16 @@ SpaceModel = (function(){
 				newSpace.paused=!newSpace.paused
 				newSpace.emit('pause-state-change', newSpace.paused)
 			})
+
+			newSpace.on('asteroid.destroyed', function(roid){
+				score += ['invalid roid size',100,50,25][roid.size]
+				if(newSpace.asteroids.length == 0)
+					setTimeout(function(){
+						newSpace.level++
+						SpaceModel.Spaces.SetLevel(newSpace)
+					},500)
+			})
+
 			return newSpace
 		},
 		Paint: function(space){
@@ -252,8 +262,8 @@ SpaceModel = (function(){
 			Spaces.Paint(space)
 			Spaces.ClearPointsFORSpace(space)
 		},
-		SetLevel: function(space, level){
-			space.asteroids = _.range(level*2).map(function(){
+		SetLevel: function(space){
+			space.asteroids = _.range(space.level*2).map(function(){
 				return Asteroids.Create()
 			})
 		},
@@ -263,6 +273,14 @@ SpaceModel = (function(){
 			space.controls.accel = 0
 			space.controls.yaw = 0
 			space.ship.heading = Math.PI	
+		},
+		StartGame: function(space){
+			space.level = 1
+			space.score = 0
+			space.lives = 3
+			ClearAutopilot()
+			Spaces.CenterStopShip(space)
+			Spaces.SetLevel(space)
 		}
 	}
 
@@ -330,7 +348,8 @@ SpaceModel = (function(){
 			SetDimensions: Spaces.SetDimensions,
 			Update: Spaces.Update,
 			SetLevel: Spaces.SetLevel,
-			CenterStopShip: Spaces.CenterStopShip
+			CenterStopShip: Spaces.CenterStopShip,
+			StartGame: Spaces.StartGame
 		},
 		Ships: {
 			Fire: Ships.Fire
