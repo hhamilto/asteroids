@@ -218,6 +218,7 @@ SpaceModel = (function(){
 					controls.yaw-=2*Math.PI
 				if(controls.yaw < -Math.PI)
 					controls.yaw+=2*Math.PI
+				controls.yaw*=1.1
 				controls.yaw = Math.max(-1,Math.min(1,controls.yaw))
 			}
 			ship.heading += duration*controls.yaw*controls.corrections.yawFactor

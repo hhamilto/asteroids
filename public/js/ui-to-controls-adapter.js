@@ -24,7 +24,7 @@ ControlsAdapter = (function(){
 		x:['beta',1],
 		y:['gamma',-1]
 	}
-	var t = false
+	var lastRotation = [0,0]
 	var windowDeviceOrientation = function(e){
 		var x = e[correctionInfo.x[0]]*correctionInfo.x[1]
 		var y = e[correctionInfo.y[0]]*correctionInfo.y[1]
