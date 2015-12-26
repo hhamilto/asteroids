@@ -138,11 +138,6 @@ SpaceModel = (function(){
 				if(newSpace.bullets.length < 5)
 					newSpace.bullets.push(bullet)
 			})
-			newSpace.ship.on('death',function(){
-				Spaces.CenterStopShip(newSpace)
-				if(!newSpace.lives)
-					newSpace.emit('game-over')
-			})
 			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			newSpace.controls.on('toggle-pause', function(){
 				newSpace.paused=!newSpace.paused
@@ -150,7 +145,6 @@ SpaceModel = (function(){
 			})
 
 			newSpace.on('asteroid.destroyed', function(roid){
-				score += ['invalid roid size',100,50,25][roid.size]
 				if(newSpace.asteroids.length == 0)
 					setTimeout(function(){
 						newSpace.level++
@@ -215,9 +209,8 @@ SpaceModel = (function(){
 				}
 				for(i = 0; i< shipPoints.length; i++)
 					if(Asteroids.Collides(space.asteroids[j],[shipPoints[i],shipPoints[(i+1)%shipPoints.length]])){
-						space.lives--
 						space.ship.emit('death')
-						return
+						break
 					}
 			}
 		},

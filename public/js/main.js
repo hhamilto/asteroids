@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 var initializeGameComponent = function(){
 	var space = SpaceModel.Spaces.Create()
+	var game = GameModel.Create(space)
 	var gameCanvas = document.getElementById('game-screen')
 	space.ctx = gameCanvas.getContext('2d')
 	var updateScreenDimensions = function(){
@@ -61,13 +62,13 @@ var initializeGameComponent = function(){
 		scoreDiv.innerHTML = space.score
 		ControlsAdapter.bindTo(space.controls)
 		gameStarted = true
-		setLives(space.lives)
+		setLives(game.lives)
 	}
-	space.ship.on('death', function(){
-		setLives(space.lives)
+	game.on('lives', function(lives){
+		setLives(lives)
 	})
-	space.on('asteroid.destroyed', function(roid){
-		scoreDiv.innerHTML = space.score
+	game.on('score', function(score){
+		scoreDiv.innerHTML = score
 	})
 	var endGame = function(){
 		if(gameStarted){
@@ -84,8 +85,8 @@ var initializeGameComponent = function(){
 
 	var gameStarted = true
 	endGame()
-	space.on('game-over', endGame)
-	space.on('game-over', function(){
+	game.on('over', endGame)
+	game.on('over', function(){
 		document.querySelectorAll('#game-over p:first-child')[0].className=''
 	})
 	pauseDiv = document.getElementById('game-paused')
