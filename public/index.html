@@ -14,12 +14,12 @@
 	<div id="game-view">
 		<canvas id="game-screen"></canvas>
 		<img id="throttle-control" class="hidden" src="/img/accel.svg">
-		<div id="game-over" class="blink centered-overlay">
-			<p class="hidden">
-				GAME OVER
-			</p>
+		<div id="overlay-messages" class="blink centered-overlay">
 			<p id="tilt-calibration-success" class="hidden">
 				DEVICE TILT SUCCESFULLY CALIBRATED
+			</p>
+			<p id="game-over" class="hidden">
+				GAME OVER
 			</p>
 			<p>
 				TOUCH TO START
@@ -80,6 +80,7 @@
 	<script src="js/localstorage-polyfill.js"></script>
 
 	<script src="js/util.js"></script>
+	<script src="js/dom-util.js"></script>
 	<script src="js/game-model.js"></script>
 	<script src="js/space-model.js"></script>
 	<script src="js/orientation-pause-safe.js"></script>

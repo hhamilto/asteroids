@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 	window.addEventListener("deviceorientation", globalDeviceOrientationHandler)
 	
 	initializeGameComponent()
-
 		
 	blink()
 })
@@ -53,7 +52,7 @@ var initializeGameComponent = function(){
 	updateScreenDimensions()
 	window.addEventListener('resize',_.throttle(windowResizeHandler, 100))
 	var scoreDiv = document.getElementById('score')
-	var gameOverDiv = document.getElementById('game-over')
+	var gameOverDiv = document.getElementById('overlay-messages')
 	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
@@ -87,7 +86,7 @@ var initializeGameComponent = function(){
 	endGame()
 	game.on('over', endGame)
 	game.on('over', function(){
-		document.querySelectorAll('#game-over p:first-child')[0].className=''
+		document.getElementById('game-over').className=''
 	})
 	pauseDiv = document.getElementById('game-paused')
 	space.on('pause-state-change', function(isPaused){
@@ -103,19 +102,6 @@ var initializeGameComponent = function(){
 
 var floor = function(num, places){
 	return Math.floor(num*Math.pow(10,places))/Math.pow(10,places)
-}
-
-var blink = function(){
-	var elements = document.querySelectorAll('.blink')
-	var on = true
-	setInterval(function(){
-		on = !on
-		_.each(elements, on?function(el){
-			el.style.opacity = '1'
-		}:function(el){
-			el.style.opacity = '0'
-		})
-	}, 1000)
 }
 
 function zeroPad(num, numZeros) {

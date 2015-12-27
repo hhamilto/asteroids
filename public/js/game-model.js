@@ -4,7 +4,7 @@ GameModel = (function(){
 			var game = {
 				score: 0,
 				level: 1,
-				lives: 3,
+				lives: 0,
 				space
 			}
 			space.on('asteroid.destroyed', function(roid){
@@ -28,6 +28,8 @@ GameModel = (function(){
 			return game
 		},
 		Start: function(game){
+			game.score = 0
+			game.level = 1
 			game.lives = 3
 			SpaceModel.ClearAutopilot()
 			SpaceModel.Spaces.CenterStopShip(game.space)

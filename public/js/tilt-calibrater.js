@@ -55,11 +55,12 @@ TiltCalibrater = {
 						//side to side is beta
 						correctionInfo.y = ['beta',-e.beta/Math.abs(e.beta)]
 					}
-					window.removeEventListener(orientationListener)
+					window.removeEventListener('deviceorientation',orientationListener)
 					ControlsAdapter.useCorrectionInfo(correctionInfo)
 					document.getElementById('console').innerHTML = JSON.stringify(correctionInfo)
 					tiltCalibrationDiv.className = 'hidden'
 					calibrationStep = ''
+					showUntilTap(document.getElementById('tilt-calibration-success'))
 				}
 			}else if(calibrationStep == 'flat'){
 				if(Math.abs(e.gamma-e.beta) < 7){
