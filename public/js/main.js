@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
 var initializeGameComponent = function(){
 	var space = SpaceModel.Spaces.Create()
 	var game = GameModel.Create(space)
+	SoundManager.BindShip(space.ship)
 	var gameCanvas = document.getElementById('game-screen')
 	space.ctx = gameCanvas.getContext('2d')
 	var updateScreenDimensions = function(){
