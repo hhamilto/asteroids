@@ -64,10 +64,16 @@ SpaceModel = (function(){
 
 	BASE_ASTEROID_RADIUS = 10
 	var Asteroids = {
-		Create: function(size,location, baseVelocity){
-			baseVelocity = baseVelocity || [0,0]
-			size = size || 3
-			location = location || [Math.random()*3000,Math.random()*3000]
+		Create: function(options){
+			options = options || {}
+			var baseVelocity = options.baseVelocity || [0,0]
+			var areaDimensions = options.areaDimensions || [3000,3000]
+			var size = options.size || 3
+			var location = options.location
+			if(!location)
+				do{
+					location = [Math.random()*areaDimensions[0],Math.random()*areaDimensions[1]]
+				}while(options.avoidLocation && distance(location,options.avoidLocation) < 50)
 			var ASTEROID_RADIUS = BASE_ASTEROID_RADIUS*size
 			var numPoints = 12
 			var thetaJitter = Math.PI*2/numPoints
@@ -144,14 +150,6 @@ SpaceModel = (function(){
 				newSpace.emit('pause-state-change', newSpace.paused)
 			})
 
-			newSpace.on('asteroid.destroyed', function(roid){
-				if(newSpace.asteroids.length == 0)
-					setTimeout(function(){
-						newSpace.level++
-						SpaceModel.Spaces.SetLevel(newSpace)
-					},500)
-			})
-
 			return newSpace
 		},
 		Paint: function(space){
@@ -198,8 +196,16 @@ SpaceModel = (function(){
 						var destroidRoid = space.asteroids[j]
 						if(space.asteroids[j].size != 1)
 							space.asteroids.splice(j,1, 
-							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice(), space.asteroids[j].velocity.slice()),
-							        Asteroids.Create(space.asteroids[j].size-1,space.asteroids[j].location.slice(), space.asteroids[j].velocity.slice()))
+							        Asteroids.Create({
+							        	size:space.asteroids[j].size-1,
+							        	location:space.asteroids[j].location.slice(),
+							        	baseVelocity: space.asteroids[j].velocity.slice()
+							        }),
+							        Asteroids.Create({
+							        	size:space.asteroids[j].size-1,
+							        	location:space.asteroids[j].location.slice(),
+							        	baseVelocity: space.asteroids[j].velocity.slice()
+							        }))
 						else
 							space.asteroids.splice(j,1)
 						space.emit('asteroid.destroyed', destroidRoid)
@@ -255,9 +261,12 @@ SpaceModel = (function(){
 			Spaces.Paint(space)
 			Spaces.ClearPointsFORSpace(space)
 		},
-		SetLevel: function(space){
-			space.asteroids = _.range(space.level*2).map(function(){
-				return Asteroids.Create()
+		SetLevel: function(space, level){
+			space.asteroids = _.range(level*2).map(function(){
+				return Asteroids.Create({
+					avoidLocation:space.ship.location,
+					areaDimensions: space.dimensions
+				})
 			})
 		},
 		CenterStopShip: function(space){
@@ -266,14 +275,6 @@ SpaceModel = (function(){
 			space.controls.accel = 0
 			space.controls.yaw = 0
 			space.ship.heading = Math.PI	
-		},
-		StartGame: function(space){
-			space.level = 1
-			space.score = 0
-			space.lives = 3
-			ClearAutopilot()
-			Spaces.CenterStopShip(space)
-			Spaces.SetLevel(space)
 		}
 	}
 
@@ -341,8 +342,7 @@ SpaceModel = (function(){
 			SetDimensions: Spaces.SetDimensions,
 			Update: Spaces.Update,
 			SetLevel: Spaces.SetLevel,
-			CenterStopShip: Spaces.CenterStopShip,
-			StartGame: Spaces.StartGame
+			CenterStopShip: Spaces.CenterStopShip
 		},
 		Ships: {
 			Fire: Ships.Fire

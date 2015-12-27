@@ -58,8 +58,8 @@ var initializeGameComponent = function(){
 	var startGame = function(){
 		gameOverDiv.className = gameOverDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)
-		SpaceModel.Spaces.StartGame(space)
-		scoreDiv.innerHTML = space.score
+		GameModel.Start(game)
+		scoreDiv.innerHTML = game.score
 		ControlsAdapter.bindTo(space.controls)
 		gameStarted = true
 		setLives(game.lives)

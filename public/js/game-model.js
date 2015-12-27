@@ -10,6 +10,11 @@ GameModel = (function(){
 			space.on('asteroid.destroyed', function(roid){
 				game.score += ['invalid roid size',100,50,25][roid.size]
 				game.emit('score', game.score)
+				if(space.asteroids.length == 0)
+					setTimeout(function(){
+						game.level++
+						SpaceModel.Spaces.SetLevel(game.space, game.level)
+					},500)
 			})
 			space.ship.on('death',function(){
 				game.lives--
@@ -22,9 +27,16 @@ GameModel = (function(){
 			mixinEvents(game)
 			return game
 		},
+		Start: function(game){
+			game.lives = 3
+			SpaceModel.ClearAutopilot()
+			SpaceModel.Spaces.CenterStopShip(game.space)
+			SpaceModel.Spaces.SetLevel(game.space, game.level)
+		}
 	}
 
 	return {
-		Create:Games.Create
+		Create: Games.Create,
+		Start: Games.Start
 	}
 })()
