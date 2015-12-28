@@ -10,7 +10,6 @@ SoundManager = (function(){
 		ship.on('bullet', function(){
 			pews[i++].play()
 			i=i%SOUND_ARRAY_SIZE//pew.play()
-			console.log(i, pews.length)
 		})
 	}
 	return {

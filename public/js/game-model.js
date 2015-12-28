@@ -5,7 +5,7 @@ GameModel = (function(){
 				score: 0,
 				level: 1,
 				lives: 0,
-				space
+				space:space
 			}
 			space.on('asteroid.destroyed', function(roid){
 				game.score += ['invalid roid size',100,50,25][roid.size]
@@ -41,4 +41,4 @@ GameModel = (function(){
 		Create: Games.Create,
 		Start: Games.Start
 	}
-})()
+}())

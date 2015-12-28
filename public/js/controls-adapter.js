@@ -26,12 +26,13 @@ ControlsAdapter = (function(){
 	}
 	var lastRotation = [0,0]
 	var windowDeviceOrientation = function(e){
+		if(!e.beta)
+			return
 		var x = e[correctionInfo.x[0]]*correctionInfo.x[1]
 		var y = e[correctionInfo.y[0]]*correctionInfo.y[1]
 		var tiltHeading = -Math.atan2(x,y)
 		tiltHeading = (tiltHeading+(Math.PI*2))%(Math.PI*2)
 		controls.desiredHeading = tiltHeading
-	//	document.getElementById('orientation-data').style.background = ?'black':'red'
 		document.getElementById('orientation-data').innerHTML = tiltHeading
 	}
 	var gameCanvas
