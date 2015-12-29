@@ -44,24 +44,29 @@
 			asdsadsadddddddddddddddddddddds
 		</div>
 	</div>
-	<div id="calibrate-tilt-settings-view" class="hidden">
+	<div id="calibrate-tilt-settings-view" class="">
 		<div id="tilt-target">
 		</div>
 		<div id="tilt-monitor">
 		</div>
 		<div class="centered-overlay">
-			<p class="">
-			HOLD YOUR DEVICE FLAT, THEN TAP THE SCREEN TO CONTINUE
-			</p>
-			<p class="hidden">
-				<= TILT LEFT
-			</p>
-			<p class="hidden">
+			<div class="">
+				HOLD YOUR DEVICE FLAT, THEN TAP THE SCREEN TO CONTINUE
+			</div>
+			<div class="hidden">
+				<img class="left" src="img/chevron.svg"> TILT LEFT
+			</div>
+			<div class="hidden">
 				HOLD YOUR DEVICE FLAT AGAIN
-			</p>
-			<p class="hidden">
-				TILT UP ^
-			</p>
+			</div>
+			<div class="hidden">
+				<div>
+					<img class="up" src="img/chevron.svg">
+				</div>
+				<div>
+					TILT UP
+				</div>
+			</div>
 		</div>
 	</div>
 	<div id="ship-template" class="hidden">
@@ -71,7 +76,6 @@
 
 	<!--script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/3.7.0/lodash.min.js"></script-->
 	<script type="text/javascript">
-
 		window.onerror = function(error) {
 			alert(error);
 		}

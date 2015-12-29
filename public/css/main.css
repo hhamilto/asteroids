@@ -78,6 +78,14 @@ html,body {
 	cursor: pointer;
 }
 
+.centered-overlay img {
+	vertical-align: middle;
+}
+
+.centered-overlay img.left{
+	transform: rotate(-90deg);
+}
+
 
 #monitor {
 	width: 100%;

@@ -53,16 +53,17 @@ var initializeGameComponent = function(){
 	updateScreenDimensions()
 	window.addEventListener('resize',_.throttle(windowResizeHandler, 100))
 	var scoreDiv = document.getElementById('score')
-	var gameOverDiv = document.getElementById('overlay-messages')
+	var overlayMessageDiv = document.getElementById('overlay-messages')
 	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
-		gameOverDiv.className = gameOverDiv.className+' hidden'
+		overlayMessageDiv.className = overlayMessageDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)
 		GameModel.Start(game)
 		scoreDiv.innerHTML = game.score
 		ControlsAdapter.bindTo(space.controls)
 		gameStarted = true
 		setLives(game.lives)
+		document.getElementById('game-over').className=''
 	}
 	game.on('lives', function(lives){
 		setLives(lives)
@@ -70,9 +71,10 @@ var initializeGameComponent = function(){
 	game.on('score', function(score){
 		scoreDiv.innerHTML = score
 	})
+
 	var endGame = function(){
 		if(gameStarted){
-			gameOverDiv.className = gameOverDiv.className.replace(/ ?hidden ?/,' ').trim()
+			overlayMessageDiv.className = overlayMessageDiv.className.replace(/ ?hidden ?/,' ').trim()
 			SpaceModel.Autopilot(space)
 			gameStarted = false
 			ControlsAdapter.unbind()
@@ -86,9 +88,6 @@ var initializeGameComponent = function(){
 	var gameStarted = true
 	endGame()
 	game.on('over', endGame)
-	game.on('over', function(){
-		document.getElementById('game-over').className=''
-	})
 	pauseDiv = document.getElementById('game-paused')
 	space.on('pause-state-change', function(isPaused){
 		setHiddeness(pauseDiv, !isPaused)//hide if not paused

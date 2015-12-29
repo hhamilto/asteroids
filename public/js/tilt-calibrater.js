@@ -3,11 +3,11 @@ TiltCalibrater = {
 		var tiltCalibrationDiv = document.getElementById('calibrate-tilt-settings-view')
 		tiltCalibrationDiv.className = ''
 		var outDiv = document.getElementById('orientation-data')
-		var stepsDiv = document.querySelectorAll('#calibrate-tilt-settings-view > .centered-overlay > p')
+		var stepsDivs = document.querySelectorAll('#calibrate-tilt-settings-view > .centered-overlay > *')
 		var stepNumber = 0
 		var progressTestStepPage = function(){
-			stepsDiv[stepNumber++].className = 'hidden'
-			stepsDiv[stepNumber].className = ''
+			stepsDivs[stepNumber++].className = 'hidden'
+			stepsDivs[stepNumber].className = ''
 		}
 		startTest = function(){
 			progressTestStepPage()
