@@ -33,7 +33,6 @@ ControlsAdapter = (function(){
 		var tiltHeading = -Math.atan2(x,y)
 		tiltHeading = (tiltHeading+(Math.PI*2))%(Math.PI*2)
 		controls.desiredHeading = tiltHeading
-		document.getElementById('orientation-data').innerHTML = tiltHeading
 	}
 	var gameCanvas
 	var throttleDiv

@@ -57,7 +57,6 @@ TiltCalibrater = {
 					}
 					window.removeEventListener('deviceorientation',orientationListener)
 					ControlsAdapter.useCorrectionInfo(correctionInfo)
-					document.getElementById('console').innerHTML = JSON.stringify(correctionInfo)
 					tiltCalibrationDiv.className = 'hidden'
 					calibrationStep = ''
 					showUntilTap(document.getElementById('tilt-calibration-success'))
