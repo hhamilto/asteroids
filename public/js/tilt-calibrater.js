@@ -1,72 +1,90 @@
-TiltCalibrater = {
-	doTiltCalibration: function(){
-		var tiltCalibrationDiv = document.getElementById('calibrate-tilt-settings-view')
-		tiltCalibrationDiv.className = ''
-		var outDiv = document.getElementById('orientation-data')
+TiltCalibrater = (function(){
+	var tiltCalibrationDiv = document.getElementById('calibrate-tilt-settings-view')
+	var GAMMA_BETA_DIFFERENCE_THRESHOLD = 30
+
+	var Monitor = (function(){
+		var tiltMonitorDiv = document.getElementById('tilt-monitor')
+		return {
+			targetSize: 250,
+			setSize: function(size){
+				var monitorSize = size/GAMMA_BETA_DIFFERENCE_THRESHOLD*this.targetSize
+				tiltMonitorDiv.style.width = monitorSize+'px'
+				tiltMonitorDiv.style.height = monitorSize+'px'	
+			}
+		}
+	}())
+
+	var correctionInfo = {
+	}
+
+	Calibrator = (function(){
+		var stepNumber = 0;
 		var stepsDivs = document.querySelectorAll('#calibrate-tilt-settings-view > .centered-overlay > *')
-		var stepNumber = 0
 		var progressTestStepPage = function(){
 			stepsDivs[stepNumber++].className = 'hidden'
-			stepsDivs[stepNumber].className = ''
+			if(stepsDivs[stepNumber]) stepsDivs[stepNumber].className = ''
 		}
-		startTest = function(){
-			progressTestStepPage()
-			tiltCalibrationDiv.removeEventListener('touchstart', startTest)
-			calibrationStep = 'left'
-			window.addEventListener('deviceorientation', orientationListener)
-			tiltCalibrationDiv.removeEventListener('touchstart', startTest)
-		}
-		var calibrationStep = ''
-		tiltCalibrationDiv.addEventListener('touchstart', startTest)
-		var correctionInfo = {
-		}
-		var calibrationPause = 0
-		var monitorTargetSize = 250
-		var targetBetaGammDifference = 30
-		var orientationListener = function(e){
-			if(Date.now() < calibrationPause){
-				return
-			}
-			var tiltMonitorDiv = document.getElementById('tilt-monitor')
-			var monitorSize = Math.abs(e.gamma-e.beta)/targetBetaGammDifference*monitorTargetSize
-			tiltMonitorDiv.style.width = monitorSize+'px'
-			tiltMonitorDiv.style.height = monitorSize+'px'
-			if(calibrationStep == 'left'){
-				if(Math.abs(e.gamma-e.beta) > 30){
+		var steps = ['noop','left','flat','up','noop']
+		var calculationsForSteps = {
+			'noop': _.noop,
+			'left' : function(gamma,beta){
+				if(Math.abs(gamma-beta) > GAMMA_BETA_DIFFERENCE_THRESHOLD){
 					//we have a clear distinction
-					if(Math.abs(e.gamma)>Math.abs(e.beta)){
+					if(Math.abs(gamma)>Math.abs(beta)){
 						//side to side is gamma
-						correctionInfo.x = ['gamma',-e.gamma/Math.abs(e.gamma)]
+						correctionInfo.x = ['gamma',-gamma/Math.abs(gamma)]
 					}else{
 						//side to side is beta
-						correctionInfo.x = ['beta',-e.beta/Math.abs(e.beta)]
+						correctionInfo.x = ['beta',-beta/Math.abs(beta)]
 					}
-
-					calibrationStep = 'flat'
-					progressTestStepPage()
+					Calibrator.nextStep()
 				}
-			}else if(calibrationStep == 'up'){
-				if(Math.abs(e.gamma-e.beta) > 30){
-					//we have a clear distinction
-					if(Math.abs(e.gamma)>Math.abs(e.beta)){
+			},
+			'flat' : function(gamma,beta){
+				if(Math.abs(gamma-beta) < 7){
+					Calibrator.nextStep()
+				}
+			},
+			'up'   : function(gamma, beta){
+				if(Math.abs(gamma-beta) > GAMMA_BETA_DIFFERENCE_THRESHOLD){
+					if(Math.abs(gamma)>Math.abs(beta)){
 						//side to side is gamma
-						correctionInfo.y = ['gamma',-e.gamma/Math.abs(e.gamma)]
+						correctionInfo.y = ['gamma',-gamma/Math.abs(gamma)]
 					}else{
 						//side to side is beta
-						correctionInfo.y = ['beta',-e.beta/Math.abs(e.beta)]
+						correctionInfo.y = ['beta',-beta/Math.abs(beta)]
 					}
-					window.removeEventListener('deviceorientation',orientationListener)
+					window.removeEventListener('deviceorientation',Calibrator.eventAdapter)
 					ControlsAdapter.useCorrectionInfo(correctionInfo)
 					tiltCalibrationDiv.className = 'hidden'
-					calibrationStep = ''
 					showUntilTap(document.getElementById('tilt-calibration-success'))
-				}
-			}else if(calibrationStep == 'flat'){
-				if(Math.abs(e.gamma-e.beta) < 7){
-					calibrationStep = 'up'
-					progressTestStepPage()
+					Calibrator.nextStep()
 				}
 			}
 		}
+		return {
+			nextStep: progressTestStepPage,
+			giveDataForStep: function(gamma, beta){
+				calculationsForSteps[steps[stepNumber]](gamma,beta)
+			},
+			eventAdapter: function(e){
+				Monitor.setSize(Math.abs(e.beta-e.gamma))
+				Calibrator.giveDataForStep(e.gamma, e.beta)
+			}
+		}
+
+
+	}())
+
+	return {
+		doTiltCalibration: function(){
+			tiltCalibrationDiv.className = ''
+			startTest = function(){
+				Calibrator.nextStep()
+				window.addEventListener('deviceorientation', Calibrator.eventAdapter)
+				tiltCalibrationDiv.removeEventListener('touchstart', startTest)
+			}
+			tiltCalibrationDiv.addEventListener('touchstart', startTest)
+		}
 	}
-}
+}())

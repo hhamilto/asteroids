@@ -17,7 +17,6 @@ document.addEventListener("DOMContentLoaded", function(event) {
 			}
 			window.removeEventListener("deviceorientation", globalDeviceOrientationHandler)
 		}
-
 	}
 	window.addEventListener("deviceorientation", globalDeviceOrientationHandler)
 	
