@@ -11,7 +11,7 @@ TiltCalibrater = {
 		}
 		startTest = function(){
 			progressTestStepPage()
-			tiltCalibrationDiv.removeEventListener(startTest)
+			tiltCalibrationDiv.removeEventListener('touchstart', startTest)
 			calibrationStep = 'left'
 			window.addEventListener('deviceorientation', orientationListener)
 			tiltCalibrationDiv.removeEventListener('touchstart', startTest)
