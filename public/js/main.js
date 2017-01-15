@@ -55,6 +55,19 @@ var initializeGameComponent = function(){
 	var overlayMessageDiv = document.getElementById('overlay-messages')
 	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
+		var ws = new WebSocket('ws://localhost:3000');
+		ws.onopen = function(hello){
+			ws.send(JSON.stringify({
+				request: 'requesasdt board'
+			}))
+			ws.send(JSON.stringify({
+				request: 'requesasdt new snake'
+			}))
+			ws.onmessage = function (event) {
+				space = JSON.parse(event.data)
+				space.ctx = gameCanvas.getContext('2d')
+			}
+		}
 		overlayMessageDiv.className = overlayMessageDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)
 		GameModel.Start(game)

@@ -1,5 +1,10 @@
-SpaceModel = (function(){
+if (typeof require == 'function') {
+	require('./util.js')
+}
+
+var SpaceModel = (function(){
 	// Written avoiding OO as an exercise
+	// Comeing back here 1 year later, glad I did this exercise
 
 	var UpdatePointsFORSpace = function(object){ //FOR = Frame Of Reference
 		object.pointsFORSpace = object.points.map(function(point){
@@ -78,7 +83,7 @@ SpaceModel = (function(){
 			var numPoints = 12
 			var thetaJitter = Math.PI*2/numPoints
 			var radiusRandomRatio = 1/2
-			var initialVelocity = .02
+			var initialVelocity = options.initialVelocity || .02
 			var initialHeading = Math.random()*Math.PI*2
 			var newAsteroid = {
 				location: location,
@@ -335,7 +340,7 @@ SpaceModel = (function(){
 		clearInterval(api)
 	}
 
-	// only export stern interface
+	// only export stern, friendly interface
 	return {
 		Spaces: {
 			Create: Spaces.Create,
@@ -344,6 +349,9 @@ SpaceModel = (function(){
 			SetLevel: Spaces.SetLevel,
 			CenterStopShip: Spaces.CenterStopShip
 		},
+		Asteroids: {
+			Create: Asteroids.Create
+		},
 		Ships: {
 			Fire: Ships.Fire
 		},
@@ -351,3 +359,6 @@ SpaceModel = (function(){
 		ClearAutopilot: ClearAutopilot
 	}
 }())
+
+if (typeof exports != 'undefined')
+	module.exports = SpaceModel
