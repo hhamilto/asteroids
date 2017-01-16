@@ -43,15 +43,17 @@ var SpaceModel = (function(){
 	}
 
 	var Ships = {
-		Create: function(){
+		Create: function(options){
+			options = options || {}
 			var newShip = {
-				location:[0,0],
-				velocity:[0,0],// in pxpms (pixels per millisecond)
+				location:[10,10],
+				velocity:[0,0], // in pxpms (pixels per millisecond)
 				heading: Math.PI,
 				coastPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[-13.11,-18]],
 				thrustPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[9,-13],[0,-29],[-9,-13],[-11,-13],[-13.11,-18]],
-				bulletMuzzleSpeed: .8,//pixels per ms
-				deceleration: .0006//in pxpsps
+				bulletMuzzleSpeed: .8, //pixels per ms
+				deceleration: .0006, //in pxpsps
+				id: options.id
 			}
 			newShip.points = newShip.coastPoints
 			mixinEvents(newShip)
@@ -83,7 +85,7 @@ var SpaceModel = (function(){
 			var numPoints = 12
 			var thetaJitter = Math.PI*2/numPoints
 			var radiusRandomRatio = 1/2
-			var initialVelocity = options.initialVelocity || .02
+			var initialVelocity = options.initialVelocity != undefined? options.initialVelocity : .02
 			var initialHeading = Math.random()*Math.PI*2
 			var newAsteroid = {
 				location: location,
@@ -138,17 +140,19 @@ var SpaceModel = (function(){
 				asteroids: _.range(10).map(function(){
 									return Asteroids.Create()
 								}),
-				ship: Ships.Create(),
+				ships: [],
 				controls: Controls.Create(),
 				bullets: [],
-				lastPaintTime: 0,
+				lastPaintTime: Date.now(),
 				paused: false,
 			}
 			mixinEvents(newSpace)
+			/*
+			// how do fire? XXXX
 			newSpace.ship.on('bullet', function(bullet){
 				if(newSpace.bullets.length < 5)
 					newSpace.bullets.push(bullet)
-			})
+			})*/
 			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			newSpace.controls.on('toggle-pause', function(){
 				newSpace.paused=!newSpace.paused
@@ -172,8 +176,10 @@ var SpaceModel = (function(){
 		},
 		ElapseTime: function(space, duration){
 			// slow ship
-			space.ship.velocity[0] *= Math.pow((1-space.ship.deceleration),duration)
-			space.ship.velocity[1] *= Math.pow((1-space.ship.deceleration),duration)
+			if (space.ship){
+				space.ship.velocity[0] *= Math.pow((1-space.ship.deceleration),duration)
+				space.ship.velocity[1] *= Math.pow((1-space.ship.deceleration),duration)
+			}
 			// kill bullets
 			var now = Date.now()
 			space.bullets = _.filter(space.bullets, function(bullet){
@@ -184,9 +190,11 @@ var SpaceModel = (function(){
 			})
 		},
 		AllSpaceJunk: function(space){
-			return space.bullets.concat(space.ship, space.asteroids)
+			return space.bullets.concat(space.ships, space.asteroids)
 		},
 		Collide: function(space, duration){
+			//XXX disabled
+			return;
 			var i,j
 			var shipPoints = space.ship.pointsFORSpace
 			var bulletLines = space.bullets.map(function(bullet){
@@ -259,12 +267,11 @@ var SpaceModel = (function(){
 
 			Spaces.CalculatePointsFORSpace(space)
 			if(!space.paused){
-				Spaces.ApplyControls(space.controls,space.ship,timePast)
+				if(space.ship)
+					Spaces.ApplyControls(space.controls,space.ship,timePast)
 				Spaces.Collide(space,timePast)
 				Spaces.ElapseTime(space,timePast)
 			}
-			Spaces.Paint(space)
-			Spaces.ClearPointsFORSpace(space)
 		},
 		SetLevel: function(space, level){
 			space.asteroids = _.range(level*2).map(function(){
@@ -283,69 +290,14 @@ var SpaceModel = (function(){
 		}
 	}
 
-	var getGhostShip = function(ship, space, controls){
-		var ghostShip = _.clone(ship,true)
-		var i
-		for(i = 0 ; i < 120; i++){
-			Spaces.ApplyControls(controls, ghostShip, 10)
-			ghostShip.location[0] += ghostShip.velocity[0]*10
-			ghostShip.location[1] += ghostShip.velocity[1]*10
-		}
-		//get ghost ship dist from ship
-		var dist = distance(ship.location, ghostShip.location)
-		//put ghost ship in frot of ship
-		ghostShip.location = rotate(ghostShip.heading, [0,dist])
-		ghostShip.location[0] += ship.location[0]
-		ghostShip.location[1] += ship.location[1]
-		Spaces.MakeGo(space, 0, ghostShip)
-		UpdatePointsFORSpace(ghostShip)
-		return ghostShip
-	}
-
-	var getGhostObject = function(obj, space){
-		var ghostBject = _.clone(obj,true)
-		var i
-		for(i = 0 ; i < 120; i++){
-			Spaces.MakeGo(space, 10, ghostBject)
-		}
-		UpdatePointsFORSpace(ghostBject)
-		return ghostBject
-	}
-
-	var api 
-	var Autopilot = function(space){
-		//fake drive ship
-		api = setInterval(function(){
-			space.controls.accel = .2
-			var i,j
-			//if we are about to hit an asteroid turn right, else straight
-			var ghostShip = getGhostShip(space.ship, space, space.controls)
-			var asteroids = space.asteroids
-			UpdatePointsFORSpace(ghostShip)
-			Spaces.CalculatePointsFORSpace(space)
-			var shipPoints = ghostShip.pointsFORSpace
-			space.controls.yaw = 0
-			var groids = _.map(space.asteroids, function(roid){
-				return getGhostObject(roid, space)
-			}) 
-			for(j = 0; j < groids.length; j++)
-				for(i = 0; i< shipPoints.length; i++)
-					if(Asteroids.Collides(groids[j],[shipPoints[i],shipPoints[(i+1)%shipPoints.length]]))
-						space.controls.yaw = .7
-			Spaces.ClearPointsFORSpace(space)
-		}, 300)
-	}
-
-	var ClearAutopilot = function(){
-		clearInterval(api)
-	}
-
 	// only export stern, friendly interface
 	return {
 		Spaces: {
 			Create: Spaces.Create,
 			SetDimensions: Spaces.SetDimensions,
 			Update: Spaces.Update,
+			Paint: Spaces.Paint,
+			ClearPointsFORSpace: Spaces.ClearPointsFORSpace,
 			SetLevel: Spaces.SetLevel,
 			CenterStopShip: Spaces.CenterStopShip
 		},
@@ -353,10 +305,9 @@ var SpaceModel = (function(){
 			Create: Asteroids.Create
 		},
 		Ships: {
+			Create: Ships.Create,
 			Fire: Ships.Fire
-		},
-		Autopilot: Autopilot,
-		ClearAutopilot: ClearAutopilot
+		}
 	}
 }())
 

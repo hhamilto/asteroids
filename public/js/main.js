@@ -27,8 +27,8 @@ document.addEventListener("DOMContentLoaded", function(event) {
 
 var initializeGameComponent = function(){
 	var space = SpaceModel.Spaces.Create()
-	var game = GameModel.Create(space)
-	SoundManager.BindShip(space.ship)
+	//var game = GameModel.Create(space)
+	//SoundManager.BindShip(space.ship)
 	var gameCanvas = document.getElementById('game-screen')
 	space.ctx = gameCanvas.getContext('2d')
 	var updateScreenDimensions = function(){
@@ -55,8 +55,9 @@ var initializeGameComponent = function(){
 	var overlayMessageDiv = document.getElementById('overlay-messages')
 	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
-		var ws = new WebSocket('ws://localhost:3000');
+		var ws = new WebSocket('ws://192.168.69.6:3000');
 		ws.onopen = function(hello){
+			var myShipId
 			ws.send(JSON.stringify({
 				request: 'requesasdt board'
 			}))
@@ -64,42 +65,79 @@ var initializeGameComponent = function(){
 				request: 'requesasdt new snake'
 			}))
 			ws.onmessage = function (event) {
-				space = JSON.parse(event.data)
-				space.ctx = gameCanvas.getContext('2d')
+				var eventData = JSON.parse(event.data)
+				if (eventData.space){
+					//ahcky as fuck
+					var savedLastPaintTime = space.lastPaintTime
+					space = eventData.space
+					space.lastPaintTime = savedLastPaintTime
+					space.ctx = gameCanvas.getContext('2d')
+					ControlsAdapter.bindTo(space.controls)
+				}
+				if(eventData.shipId) {
+					myShipId = eventData.shipId
+				}
+				if(eventData.asteroids) {
+					space.asteroids = eventData.asteroids
+				}
+				if(eventData.ships) {
+					if(myShipId)
+						space.ship = _.find(space.ships, function(ship){
+							return ship.id == myShipId
+						})
+					if(eventData.ships.length == space.ships.length){
+						for( var i = 0; i<space.ships.length; i++){
+							if(space.ships[i].id == myShipId) {
+								space.ships[i].location = eventData.ships[i].location
+								space.ships[i].velocity = eventData.ships[i].velocity
+							} else {
+								space.ships[i] = eventData.ships[i]
+							}
+						}
+						return
+					}
+					space.ships = eventData.ships
+				}
 			}
+			setInterval(function(){
+				ws.send(JSON.stringify({
+					shipId: myShipId,
+					ship: space.ship
+				}))
+			},100)
 		}
 		overlayMessageDiv.className = overlayMessageDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)
-		GameModel.Start(game)
-		scoreDiv.innerHTML = game.score
+		//GameModel.Start(game)
+		//scoreDiv.innerHTML = game.score
 		ControlsAdapter.bindTo(space.controls)
 		gameStarted = true
-		setLives(game.lives)
+		//setLives(game.lives)
 		document.getElementById('game-over').className=''
 	}
-	game.on('lives', function(lives){
+	/*game.on('lives', function(lives){
 		setLives(lives)
 	})
 	game.on('score', function(score){
 		scoreDiv.innerHTML = score
-	})
+	})*/
 
 	var endGame = function(){
 		if(gameStarted){
 			overlayMessageDiv.className = overlayMessageDiv.className.replace(/ ?hidden ?/,' ').trim()
-			SpaceModel.Autopilot(space)
 			gameStarted = false
 			ControlsAdapter.unbind()
 			gameViewDiv.addEventListener('click', startGame)
 		}
 	}
 
-	space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
+	/*space.ship.location = [space.dimensions[0]/2,space.dimensions[1]/2]
 	space.ship.heading = Math.PI /4
+	*/
 
 	var gameStarted = true
 	endGame()
-	game.on('over', endGame)
+	//game.on('over', endGame)
 	pauseDiv = document.getElementById('game-paused')
 	space.on('pause-state-change', function(isPaused){
 		setHiddeness(pauseDiv, !isPaused)//hide if not paused
@@ -107,6 +145,8 @@ var initializeGameComponent = function(){
 	OrientationPauseSafe.initialize(space)
 	var RAF_callback = function(currentTime){
 		SpaceModel.Spaces.Update(space, currentTime)
+		SpaceModel.Spaces.Paint(space)
+		SpaceModel.Spaces.ClearPointsFORSpace(space)
 		window.requestAnimationFrame(RAF_callback)
 	}
 	window.requestAnimationFrame(RAF_callback)
