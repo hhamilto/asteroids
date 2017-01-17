@@ -57,54 +57,59 @@ var initializeGameComponent = function(){
 	var startGame = function(){
 		var ws = new WebSocket('ws://192.168.69.6:3000');
 		ws.onopen = function(hello){
-			var myShipId
-			ws.send(JSON.stringify({
-				request: 'requesasdt board'
-			}))
-			ws.send(JSON.stringify({
-				request: 'requesasdt new snake'
-			}))
+			var myPlayerId
 			ws.onmessage = function (event) {
 				var eventData = JSON.parse(event.data)
 				if (eventData.space){
 					//ahcky as fuck
 					var savedLastPaintTime = space.lastPaintTime
+					var savedControls = space.controls
 					space = eventData.space
 					space.lastPaintTime = savedLastPaintTime
+					space.controls = savedControls
 					space.ctx = gameCanvas.getContext('2d')
-					ControlsAdapter.bindTo(space.controls)
 				}
-				if(eventData.shipId) {
-					myShipId = eventData.shipId
+				if(eventData.playerId) {
+					myPlayerId = eventData.playerId
 				}
 				if(eventData.asteroids) {
 					space.asteroids = eventData.asteroids
 				}
-				if(eventData.ships) {
-					if(myShipId)
-						space.ship = _.find(space.ships, function(ship){
-							return ship.id == myShipId
+				if(eventData.players) {
+					if(myPlayerId){
+						var player = _.find(space.players, function(player){
+							return player.id == myPlayerId
 						})
-					if(eventData.ships.length == space.ships.length){
-						for( var i = 0; i<space.ships.length; i++){
-							if(space.ships[i].id == myShipId) {
-								space.ships[i].location = eventData.ships[i].location
-								space.ships[i].velocity = eventData.ships[i].velocity
+						space.ship = player.ship
+					}
+					if(eventData.players.length == space.players.length){
+						for( var i = 0; i<space.players.length; i++){
+							if(space.players[i].id == myPlayerId) {
+								space.players[i].ship.location = eventData.players[i].ship.location
+								space.players[i].ship.velocity = eventData.players[i].ship.velocity
+								if(space.players[i].ship.heading != eventData.players[i].ship.heading){
+									console.log('hi')
+									ws.send(JSON.stringify({
+										heading: space.players[i].ship.heading,
+										playerId: myPlayerId
+									}))
+								}
 							} else {
-								space.ships[i] = eventData.ships[i]
+								space.players[i].ship = eventData.players[i].ship
 							}
 						}
 						return
 					}
-					space.ships = eventData.ships
+					space.players = eventData.players
 				}
 			}
-			setInterval(function(){
+			space.controls.on('state-change', function(){
 				ws.send(JSON.stringify({
-					shipId: myShipId,
+					playerId: myPlayerId,
+					controls: space.controls,
 					ship: space.ship
 				}))
-			},100)
+			})
 		}
 		overlayMessageDiv.className = overlayMessageDiv.className+' hidden'
 		gameViewDiv.removeEventListener('click', startGame)

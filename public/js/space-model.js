@@ -140,7 +140,7 @@ var SpaceModel = (function(){
 				asteroids: _.range(10).map(function(){
 									return Asteroids.Create()
 								}),
-				ships: [],
+				players: [],
 				controls: Controls.Create(),
 				bullets: [],
 				lastPaintTime: Date.now(),
@@ -153,7 +153,7 @@ var SpaceModel = (function(){
 				if(newSpace.bullets.length < 5)
 					newSpace.bullets.push(bullet)
 			})*/
-			newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
+			//newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			newSpace.controls.on('toggle-pause', function(){
 				newSpace.paused=!newSpace.paused
 				newSpace.emit('pause-state-change', newSpace.paused)
@@ -176,9 +176,9 @@ var SpaceModel = (function(){
 		},
 		ElapseTime: function(space, duration){
 			// slow ship
-			if (space.ship){
-				space.ship.velocity[0] *= Math.pow((1-space.ship.deceleration),duration)
-				space.ship.velocity[1] *= Math.pow((1-space.ship.deceleration),duration)
+			for (var i = 0; i < space.players.length; i++){
+				space.players[i].ship.velocity[0] *= Math.pow((1-space.players[i].ship.deceleration),duration)
+				space.players[i].ship.velocity[1] *= Math.pow((1-space.players[i].ship.deceleration),duration)
 			}
 			// kill bullets
 			var now = Date.now()
@@ -190,7 +190,7 @@ var SpaceModel = (function(){
 			})
 		},
 		AllSpaceJunk: function(space){
-			return space.bullets.concat(space.ships, space.asteroids)
+			return space.bullets.concat(_.map(space.players, 'ship'), space.asteroids)
 		},
 		Collide: function(space, duration){
 			//XXX disabled
@@ -269,6 +269,9 @@ var SpaceModel = (function(){
 			if(!space.paused){
 				if(space.ship)
 					Spaces.ApplyControls(space.controls,space.ship,timePast)
+				for( var i = 0; i < space.players.length; i++){
+					Spaces.ApplyControls(space.players[i].controls, space.players[i].ship, timePast)
+				}
 				Spaces.Collide(space,timePast)
 				Spaces.ElapseTime(space,timePast)
 			}
@@ -307,6 +310,9 @@ var SpaceModel = (function(){
 		Ships: {
 			Create: Ships.Create,
 			Fire: Ships.Fire
+		},
+		Controls: {
+			Create: Controls.Create
 		}
 	}
 }())

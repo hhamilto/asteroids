@@ -23,13 +23,13 @@ var asteroid1 = SpaceModel.Asteroids.Create({
 var asteroid2 = SpaceModel.Asteroids.Create({
 	location: [500,600],
 	initialVelocity: 0,
-	baseVelocity: [0,1]
+	baseVelocity: [0.2,-.03]
 })
 space.asteroids = [asteroid1, asteroid2]
 console.log(asteroid1.velocity)
 var updateSpace_callback = function(){
 	SpaceModel.Spaces.Update(space, Date.now())
-	setImmediate(updateSpace_callback)
+	setTimeout(updateSpace_callback,0)
 }
 setImmediate(updateSpace_callback)
 
@@ -39,12 +39,14 @@ var app = express()
 app.use(express.static(__dirname+'/public'))
 
 wss.on('connection', conn => {
-	var idObj = {
-		id: Math.random()
+	var player = {
+		id: Math.random(),
+		ship: SpaceModel.Ships.Create(),
+		controls: SpaceModel.Controls.Create()
 	}
-	space.ships.push(SpaceModel.Ships.Create(idObj))
+	space.players.push(player)
 	conn.send(JSON.stringify({
-		shipId: idObj.id
+		playerId: player.id
 	}))
 	conn.on('message', messageString => {
 		try {
@@ -52,24 +54,27 @@ wss.on('connection', conn => {
 		} catch( ignored ) {
 			return //fuckit
 		}
-		if(message.shipId){
-			var ship = _.find(space.ships, {id:message.shipId})
-			_.assign(ship, message.ship)
-		}
-		if(message.request == 'request neoow snake'){
-			board[0][0] = boardUtil.constants.SNAKE_HEAD
-			conn.send(JSON.stringify({board}))
+		if(message.playerId){
+			var player = _.find(space.players, {id:message.playerId})
+			if(message.controls){
+				_.assign(player.controls, message.controls)
+			}
+			if(message.heading){
+				player.ship.heading = message.heading
+			}
+			if(message.fire){
+				
+			}
 		}
 	})
 	conn.send(JSON.stringify({space}))
 	var interval = setInterval(function(){
-		console.log(space.ships[0].velocity)
+		console.log(space.players[0].ship.velocity)
 		conn.send(JSON.stringify({
 			asteroids: space.asteroids,
-			ships: space.ships
+			players: space.players
 		}))
-		asteroid2.location[0]++
-	}, 50)
+	}, 100)
 	conn.on('close', function(){
 		clearInterval(interval)
 	})

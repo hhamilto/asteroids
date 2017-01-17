@@ -7,10 +7,15 @@ ControlsAdapter = (function(){
 			controls.yaw=.5
 		else if(e.keyCode == 'W'.charCodeAt(0) || e.keyCode == 38)
 			controls.accel=1
-		else if(e.keyCode == ' '.charCodeAt(0))
+		else if(e.keyCode == ' '.charCodeAt(0)){
 			controls.emit('fire')
-		else if(e.keyCode == 'P'.charCodeAt(0))
+			return
+		}
+		else if(e.keyCode == 'P'.charCodeAt(0)){
 			controls.emit('toggle-pause')
+			return
+		}
+		controls.emit('state-change')
 	}
 	var windowKeyUp = function(e){
 		if(e.keyCode == 'A'.charCodeAt(0) || e.keyCode == 37)
@@ -19,6 +24,7 @@ ControlsAdapter = (function(){
 			controls.yaw=0
 		else if(e.keyCode == 'W'.charCodeAt(0) || e.keyCode == 38)
 			controls.accel=0
+		controls.emit('state-change')
 	}
 	var correctionInfo = {
 		x:['beta',1],
@@ -33,16 +39,19 @@ ControlsAdapter = (function(){
 		var tiltHeading = -Math.atan2(x,y)
 		tiltHeading = (tiltHeading+(Math.PI*2))%(Math.PI*2)
 		controls.desiredHeading = tiltHeading
+		controls.emit('state-change')
 	}
 	var gameCanvas
 	var throttleDiv
 	var throttleDivTouchStart = function(e){
 		e.preventDefault()
 		controls.accel = .5
+		controls.emit('state-change')
 	}
 	var throttleDivTouchEnd = function(e){
 		e.preventDefault()
 		controls.accel = 0
+		controls.emit('state-change')
 	}
 	var gameCanvasTouchStart = function(e){
 		controls.emit('fire')
