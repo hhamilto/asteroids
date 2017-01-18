@@ -39,12 +39,9 @@ var app = express()
 app.use(express.static(__dirname+'/public'))
 
 wss.on('connection', conn => {
-	var player = {
-		id: Math.random(),
-		ship: SpaceModel.Ships.Create(),
-		controls: SpaceModel.Controls.Create()
-	}
-	space.players.push(player)
+	const player = SpaceModel.Players.Create({
+		space
+	})
 	conn.send(JSON.stringify({
 		playerId: player.id
 	}))
@@ -63,13 +60,15 @@ wss.on('connection', conn => {
 				player.ship.heading = message.heading
 			}
 			if(message.fire){
-				
+				SpaceModel.Ships.Fire(player.ship)
+				conn.send(JSON.stringify({
+					bullets:space.bullets
+				}))
 			}
 		}
 	})
 	conn.send(JSON.stringify({space}))
 	var interval = setInterval(function(){
-		console.log(space.players[0].ship.velocity)
 		conn.send(JSON.stringify({
 			asteroids: space.asteroids,
 			players: space.players

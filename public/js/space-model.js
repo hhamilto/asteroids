@@ -59,11 +59,17 @@ var SpaceModel = (function(){
 			mixinEvents(newShip)
 			return newShip
 		},
+		ShipTip: function(ship){
+			var tip = rotate(ship.heading, [0,ship.coastPoints[0][1]+1])
+			tip[0] += ship.location[0]
+			tip[1] += ship.location[1]
+			return tip
+		},
 		Fire: _.throttle(function(ship){
-			var bulletVelocity = rotate(ship.heading,[0,ship.bulletMuzzleSpeed])	
+			var bulletVelocity = rotate(ship.heading,[0,ship.bulletMuzzleSpeed])
 			bulletVelocity[0]+=ship.velocity[0]
 			bulletVelocity[1]+=ship.velocity[1]
-			ship.emit('bullet', Bullets.Create(ship.location.slice(), bulletVelocity))
+			ship.emit('bullet', Bullets.Create(Ships.ShipTip(ship), bulletVelocity))
 		},10,{
 			trailing: false
 		})
@@ -133,6 +139,22 @@ var SpaceModel = (function(){
 		}
 	}
 
+	var Players = {
+		Create: function({space}){
+			var player = {
+				id: Math.random(),
+				ship: SpaceModel.Ships.Create(),
+				controls: SpaceModel.Controls.Create()
+			}
+			space.players.push(player)
+			player.ship.on('bullet', function(bullet){
+				//if(newSpace.bullets.length < 5)
+				space.bullets.push(bullet)
+			})
+			return player
+		}
+	}
+
 	var Spaces = {
 		Create: function(){
 			var newSpace = {
@@ -147,13 +169,6 @@ var SpaceModel = (function(){
 				paused: false,
 			}
 			mixinEvents(newSpace)
-			/*
-			// how do fire? XXXX
-			newSpace.ship.on('bullet', function(bullet){
-				if(newSpace.bullets.length < 5)
-					newSpace.bullets.push(bullet)
-			})*/
-			//newSpace.controls.on('fire', _.partial(Ships.Fire,newSpace.ship))
 			newSpace.controls.on('toggle-pause', function(){
 				newSpace.paused=!newSpace.paused
 				newSpace.emit('pause-state-change', newSpace.paused)
@@ -306,6 +321,9 @@ var SpaceModel = (function(){
 		},
 		Asteroids: {
 			Create: Asteroids.Create
+		},
+		Players: {
+			Create: Players.Create
 		},
 		Ships: {
 			Create: Ships.Create,
