@@ -53,6 +53,8 @@ wss.on('connection', conn => {
 		}
 		if(message.playerId){
 			var player = _.find(space.players, {id:message.playerId})
+			if(!player)
+				return;
 			if(message.controls){
 				_.assign(player.controls, message.controls)
 			}

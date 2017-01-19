@@ -60,7 +60,7 @@ var SpaceModel = (function(){
 			return newShip
 		},
 		ShipTip: function(ship){
-			var tip = rotate(ship.heading, [0,ship.coastPoints[0][1]+1])
+			var tip = rotate(ship.heading, [0,ship.coastPoints[0][1]+10])
 			tip[0] += ship.location[0]
 			tip[1] += ship.location[1]
 			return tip
@@ -72,7 +72,21 @@ var SpaceModel = (function(){
 			ship.emit('bullet', Bullets.Create(Ships.ShipTip(ship), bulletVelocity))
 		},10,{
 			trailing: false
-		})
+		}),
+		Collides: function(ship, line){
+			//use a kind of bounding 
+			if(     distance(ship.location, line[0]) > 18 && //18 is the manitude of the max coast point
+			        distance(ship.location, line[1]) > 18)
+				return false
+			var i
+			var points = ship.pointsFORSpace.slice()
+			points.push(points[0])
+			for(i = 0; i<points.length-1; i++){
+				if(doIntersect(points[i],points[i+1],line[0], line[1]))
+					return true
+			}
+			return false
+		}
 	}
 
 	BASE_ASTEROID_RADIUS = 10
@@ -109,8 +123,8 @@ var SpaceModel = (function(){
 		},
 		Collides: function(asteroid, line){
 			//use a kind of bounding "circle"
-			if(     distance(asteroid.location, line[0]) > BASE_ASTEROID_RADIUS *2 &
-			        distance(asteroid.location, line[1]) > BASE_ASTEROID_RADIUS *2)
+			if(     distance(asteroid.location, line[0]) > BASE_ASTEROID_RADIUS * 3 &&
+			        distance(asteroid.location, line[1]) > BASE_ASTEROID_RADIUS * 3)
 				return false
 			var i
 			var points = asteroid.pointsFORSpace.slice()
@@ -151,6 +165,10 @@ var SpaceModel = (function(){
 				//if(newSpace.bullets.length < 5)
 				space.bullets.push(bullet)
 			})
+			player.ship.on('death', function(bullet){
+				//if(newSpace.bullets.length < 5)
+				space.players = _.reject(space.players, player)
+			})
 			return player
 		}
 	}
@@ -177,11 +195,13 @@ var SpaceModel = (function(){
 			return newSpace
 		},
 		Paint: function(space){
+			var t1 = performance.now()
 			space.ctx.fillStyle = '#000'
 			space.ctx.strokeStyle = '#FFF'
 			space.ctx.fillRect(0, 0, space.dimensions[0], space.dimensions[1])
 			_.each(Spaces.AllSpaceJunk(space), _.partial(Draw,space.ctx))
 			space.ctx.strokeStyle = '#F0F'
+			console.log(performance.now() -t1)
 		},
 		MakeGo: function(space, duration, item){
 			item.location[0] = (item.location[0]+(item.velocity[0]*duration)+space.dimensions[0])%space.dimensions[0]
@@ -208,15 +228,20 @@ var SpaceModel = (function(){
 			return space.bullets.concat(_.map(space.players, 'ship'), space.asteroids)
 		},
 		Collide: function(space, duration){
-			//XXX disabled
-			return;
 			var i,j
-			var shipPoints = space.ship.pointsFORSpace
 			var bulletLines = space.bullets.map(function(bullet){
 				return [bullet.location,
 				        [bullet.location[0]-(bullet.velocity[0]*duration),
 				         bullet.location[1]-(bullet.velocity[1]*duration)]]
 			})
+			for(i = 0; i< bulletLines.length; i++){
+				for(j = 0; j < space.players.length; j++){
+					if(Asteroids.Collides(space.players[j].ship, bulletLines[i])){
+						space.players[j].ship.emit && space.players[j].ship.emit('death')
+					}
+				}
+			}
+			// asteroid interactions... ffft waaatever
 			outter: for(j = 0; j < space.asteroids.length; j++){
 				for(i = 0; i< bulletLines.length; i++){
 					//turn bullet into a line
@@ -236,16 +261,19 @@ var SpaceModel = (function(){
 							        }))
 						else
 							space.asteroids.splice(j,1)
-						space.emit('asteroid.destroyed', destroidRoid)
+						//space.emit('asteroid.destroyed', destroidRoid)
 						space.bullets.splice(i,1)
 						continue outter
 					}
 				}
+				/*
+				more complicated now
 				for(i = 0; i< shipPoints.length; i++)
 					if(Asteroids.Collides(space.asteroids[j],[shipPoints[i],shipPoints[(i+1)%shipPoints.length]])){
 						space.ship.emit('death')
 						break
 					}
+					*/
 			}
 		},
 		ApplyControls: function(controls, ship, duration){
