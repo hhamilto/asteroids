@@ -8,19 +8,42 @@ var SpaceModel = (function(){
 
 	var UpdatePointsFORSpace = function(object){ //FOR = Frame Of Reference
 		object.pointsFORSpace = object.points.map(function(point){
-			return rotate(object.heading,point)
-		})
-
-		object.pointsFORSpace.forEach(function(p){
+			var p = rotate(object.heading,point)
 			p[0]+=object.location[0]
 			p[1]+=object.location[1]
+			return p
 		})
 	}
+
+	var UpdatePointsFORScreen = function(object, screenSize, paintSize, paintLocation){ //FOR = Frame Of Reference
+		object.pointsFORScreen = _.map(object.pointsFORSpace, function(point){
+			var pointFORPaintArea = [
+				point[0] - paintLocation[0],
+				point[1] - paintLocation[1]
+			]
+			return [
+				pointFORPaintArea[0]*screenSize[0]/paintSize[0],
+				pointFORPaintArea[1]*screenSize[1]/paintSize[1]
+			]
+		})
+
+	}
+
 	var ClearPointsFORSpace = function(object){
 		object.pointsFORSpace = null
 	}
 
-	var Draw = function(ctx, object){
+	var Draw = function(ctx){
+		return function(object){
+			ctx.beginPath()
+			ctx.moveTo(object.pointsFORScreen[0],object.pointsFORScreen[1])
+			object.pointsFORScreen.slice(1).concat([object.pointsFORScreen[0]]).forEach(function(point){
+				ctx.lineTo(point[0],point[1])
+			})
+			ctx.closePath()
+			ctx.stroke()
+			/*
+
 		ctx.beginPath()
 		ctx.moveTo(object.pointsFORSpace[0],object.pointsFORSpace[1])
 		object.pointsFORSpace.slice(1).concat([object.pointsFORSpace[0]]).forEach(function(point){
@@ -28,6 +51,8 @@ var SpaceModel = (function(){
 		})
 		ctx.closePath()
 		ctx.stroke()
+		*/
+		}
 	}
 
 	var Bullets = {
@@ -46,7 +71,7 @@ var SpaceModel = (function(){
 		Create: function(options){
 			options = options || {}
 			var newShip = {
-				location:[10,10],
+				location:[1500,1500],
 				velocity:[0,0], // in pxpms (pixels per millisecond)
 				heading: Math.PI,
 				coastPoints: [[0,13],[13.11,-18],[11,-13],[-11,-13],[-13.11,-18]],
@@ -195,18 +220,28 @@ var SpaceModel = (function(){
 			return newSpace
 		},
 		Paint: function(space){
-			var t1 = performance.now()
+			if(!space.paintCenter || !space.ship) return
+			const aspectRatio = space.screenDimensions[0] / space.screenDimensions[1];
+			if(space.screenDimensions[0] > space.screenDimensions[1]){
+				var spacePaintSize = [1000, 1000*(space.screenDimensions[1]/space.screenDimensions[0])]
+			}else {
+				var spacePaintSize = [1000*(space.screenDimensions[0]/space.screenDimensions[1]),1000]
+			}
+			_.each(Spaces.AllSpaceJunk(space), function(object){
+				UpdatePointsFORScreen(object, space.screenDimensions, spacePaintSize, [space.paintCenter[0]-spacePaintSize[0]/2, space.paintCenter[1]-spacePaintSize[1]/2])
+			})
+			
 			space.ctx.fillStyle = '#000'
 			space.ctx.strokeStyle = '#FFF'
-			space.ctx.fillRect(0, 0, space.dimensions[0], space.dimensions[1])
-			_.each(Spaces.AllSpaceJunk(space), _.partial(Draw,space.ctx))
+			space.ctx.fillRect(0, 0, space.screenDimensions[0], space.screenDimensions[1])
+
+			_.each(Spaces.AllSpaceJunk(space), Draw(space.ctx))
 			space.ctx.strokeStyle = '#F0F'
-			console.log(performance.now() -t1)
 		},
 		MakeGo: function(space, duration, item){
 			item.location[0] = (item.location[0]+(item.velocity[0]*duration)+space.dimensions[0])%space.dimensions[0]
 			item.location[1] = (item.location[1]+(item.velocity[1]*duration)+space.dimensions[1])%space.dimensions[1]
-			if(item.location[0]+'' == 'NaN')
+			if(isNaN(item.location[0]))
 				throw new Error(item.location[0])
 		},
 		ElapseTime: function(space, duration){
@@ -291,8 +326,8 @@ var SpaceModel = (function(){
 			var acceleration = rotate(ship.heading,[0,duration*controls.accel*controls.corrections.accelerationFactor])	
 			ship.velocity[0] += acceleration[0]
 			ship.velocity[1] += acceleration[1]
-			
-			if(controls.accel && (Math.floor(duration)%2==0)){
+			console.log(controls.accel)
+			if(controls.accel ){//&& (Math.floor(duration)%2==0)){
 				ship.points = ship.thrustPoints
 			}else{
 				ship.points = ship.coastPoints
@@ -307,13 +342,47 @@ var SpaceModel = (function(){
 		Update: function(space, currentTime){
 			var timePast = currentTime-space.lastPaintTime
 			space.lastPaintTime = currentTime
+			var SAFETY_MARGIN = 50
+			if(space.ship && space.paintCenter && space.screenDimensions) {
+				const aspectRatio = space.screenDimensions[0] / space.screenDimensions[1];
+				if(space.screenDimensions[0] > space.screenDimensions[1]){
+					var spacePaintSize = [1000, 1000*(space.screenDimensions[1]/space.screenDimensions[0])]
+				}else {
+					var spacePaintSize = [1000*(space.screenDimensions[0]/space.screenDimensions[1]),1000]
+				}
+				var paintLeft = space.paintCenter[0]-spacePaintSize[0]/2
+				var paintRight = space.paintCenter[0]+spacePaintSize[0]/2
+				var paintTop = space.paintCenter[1]-spacePaintSize[1]/2
+				var paintBottom = space.paintCenter[1]+spacePaintSize[1]/2
 
+				if( 
+					(space.ship.location[0] < paintLeft + SAFETY_MARGIN && space.ship.velocity[0] < 0 ) ||
+					(space.ship.location[0] > paintRight - SAFETY_MARGIN && space.ship.velocity[0] > 0 ))
+				{
+					space.paintCenter = addPoints(
+						space.paintCenter,
+						[space.ship.velocity[0]*timePast, 0])
+					if(isNaN(space.paintCenter[0]))
+						throw new Error("olllool")
+				}
+				if(
+					(space.ship.location[1] < paintTop + SAFETY_MARGIN && space.ship.velocity[1] < 0 ) ||
+					(space.ship.location[1] > paintBottom - SAFETY_MARGIN && space.ship.velocity[1] > 0 ))
+				{
+					space.paintCenter = addPoints(
+						space.paintCenter,
+						[0, space.ship.velocity[1]*timePast])
+					if(isNaN(space.paintCenter[1]))
+						throw new Error("olllool")
+				}
+			}
 			Spaces.CalculatePointsFORSpace(space)
 			if(!space.paused){
 				if(space.ship)
 					Spaces.ApplyControls(space.controls,space.ship,timePast)
 				for( var i = 0; i < space.players.length; i++){
-					Spaces.ApplyControls(space.players[i].controls, space.players[i].ship, timePast)
+					if(space.players[i].id != space.playerId)
+						Spaces.ApplyControls(space.players[i].controls, space.players[i].ship, timePast)
 				}
 				Spaces.Collide(space,timePast)
 				Spaces.ElapseTime(space,timePast)

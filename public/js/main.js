@@ -32,15 +32,17 @@ var initializeGameComponent = function(){
 	var gameCanvas = document.getElementById('game-screen')
 	space.ctx = gameCanvas.getContext('2d')
 	var updateScreenDimensions = function(){
-		space.dimensions = [gameCanvas.clientWidth,
+		space.screenDimensions = [gameCanvas.clientWidth,
 		                    gameCanvas.clientHeight]
-		gameCanvas.setAttribute('width', space.dimensions[0])
-		gameCanvas.setAttribute('height', space.dimensions[1])
+		gameCanvas.setAttribute('width', space.screenDimensions[0])
+		gameCanvas.setAttribute('height', space.screenDimensions[1])
 	}
+	updateScreenDimensions()
 	var windowResizeHandler = function(e){
 		updateScreenDimensions()
 		window.scrollTo(0,0)
 	}
+	window.addEventListener('resize',_.throttle(windowResizeHandler, 100))
 	var livesDiv = document.getElementById('lives')
 	var shipImgTemplate = document.querySelectorAll('#ship-template img')[0]
 	var setLives = function(lives){
@@ -49,8 +51,6 @@ var initializeGameComponent = function(){
 		while(lives--)
 			livesDiv.appendChild(shipImgTemplate.cloneNode(true))
 	}
-	updateScreenDimensions()
-	window.addEventListener('resize',_.throttle(windowResizeHandler, 100))
 	var scoreDiv = document.getElementById('score')
 	var overlayMessageDiv = document.getElementById('overlay-messages')
 	var gameViewDiv = document.getElementById('game-view')
@@ -61,16 +61,28 @@ var initializeGameComponent = function(){
 			ws.onmessage = function (event) {
 				var eventData = JSON.parse(event.data)
 				if (eventData.space){
+					console.log('recv eventData.space')
 					//ahcky as fuck
 					var savedLastPaintTime = space.lastPaintTime
 					var savedControls = space.controls
+					var savedPaintCenter = space.paintCenter
+					var savedScreenDimensions = space.screenDimensions
+					var savedPlayerId = space.playerId
 					space = eventData.space
 					space.lastPaintTime = savedLastPaintTime
 					space.controls = savedControls
+					space.paintCenter = savedPaintCenter
+					space.screenDimensions = savedScreenDimensions
+					space.playerId = savedPlayerId
 					space.ctx = gameCanvas.getContext('2d')
 				}
 				if(eventData.playerId) {
-					myPlayerId = eventData.playerId
+					console.log('setting player id')
+					myPlayerId = space.playerId = eventData.playerId
+				}
+				if(eventData.location){
+					console.log('setting paint center:' + eventData.location)
+					space.paintCenter = eventData.location
 				}
 				if(eventData.asteroids) {
 					space.asteroids = eventData.asteroids
@@ -83,7 +95,8 @@ var initializeGameComponent = function(){
 						var player = _.find(space.players, function(player){
 							return player.id == myPlayerId
 						})
-						space.ship = player.ship
+						if (player)
+							space.ship = player.ship
 					}
 					if(eventData.players.length == space.players.length){
 						for( var i = 0; i<space.players.length; i++){
@@ -160,7 +173,9 @@ var initializeGameComponent = function(){
 		SpaceModel.Spaces.Update(space, currentTime)
 		SpaceModel.Spaces.Paint(space)
 		SpaceModel.Spaces.ClearPointsFORSpace(space)
-		window.requestAnimationFrame(RAF_callback)
+		//setTimeout(function(){
+			window.requestAnimationFrame(RAF_callback)
+		//},60);
 	}
 	window.requestAnimationFrame(RAF_callback)
 }

@@ -5,6 +5,7 @@ const WebSocketServer = require('ws').Server
 
 //const SpaceModel = require('./public/js/space-model.js')
 const SpaceModel = require('./public/js/space-model.js')
+require('./public/js/util.js') // yay... requireing client side code here makes me feel yucky.
 
 server = http.createServer()
 wss = new WebSocketServer({ server: server })
@@ -13,17 +14,17 @@ const SIDE_LENGTH = 20
 
 var space = SpaceModel.Spaces.Create()
 delete space.ship
-space.dimensions = [1000, 1000]
+space.dimensions = [10000, 10000]
 
 var asteroid1 = SpaceModel.Asteroids.Create({
-	location: [100,300],
+	location: [1600,1600],
 	initialVelocity: 0,
 	baseVelocity: [0,0]
 })
 var asteroid2 = SpaceModel.Asteroids.Create({
-	location: [500,600],
+	location: [1200,1700],
 	initialVelocity: 0,
-	baseVelocity: [0.2,-.03]
+	baseVelocity: [0,0]
 })
 space.asteroids = [asteroid1, asteroid2]
 console.log(asteroid1.velocity)
@@ -33,6 +34,7 @@ var updateSpace_callback = function(){
 }
 setImmediate(updateSpace_callback)
 
+const within = distanceLimit => object1 => object2 => distance(object1.location, object2.location) < distanceLimit
 
 var app = express()
 
@@ -42,8 +44,11 @@ wss.on('connection', conn => {
 	const player = SpaceModel.Players.Create({
 		space
 	})
+	console.log(player.ship.location)
+	console.log('sending player location')
 	conn.send(JSON.stringify({
-		playerId: player.id
+		playerId: player.id,
+		location: player.ship.location
 	}))
 	conn.on('message', messageString => {
 		try {
@@ -72,10 +77,10 @@ wss.on('connection', conn => {
 	conn.send(JSON.stringify({space}))
 	var interval = setInterval(function(){
 		conn.send(JSON.stringify({
-			asteroids: space.asteroids,
-			players: space.players
+			asteroids: _.filter(space.asteroids, within(1001)(player.ship)),
+			players: _.filter(space.players, playerFiltered => within(1001)(player.ship)(playerFiltered.ship))
 		}))
-	}, 100)
+	}, 1000)
 	conn.on('close', function(){
 		clearInterval(interval)
 	})

@@ -3,9 +3,24 @@ rotate = function(angle,point){
 	return [point[0]*Math.cos(angle)-point[1]*Math.sin(angle),
 	        point[0]*Math.sin(angle)+point[1]*Math.cos(angle)]
 }
+
 addPoints =  function(p1,p2){
 	return [p1[0]+p2[0], p1[1]+p2[1]]
 }
+
+subtractPoints = function(p1,p2){
+	return [p1[0]-p2[0], p1[1]-p2[1]]
+}
+
+getMagnitude = function(vector){
+	return Math.sqrt(vector[0]*vector[0] + vector[1]*vector[1])
+}
+
+setVectorMagnitude = function(newMagnitude, vector){
+	var scaleFactor = newMagnitude/getMagnitude(vector)
+	return [vector[0] * scaleFactor, vector[1] * scaleFactor]
+}
+
 distance = function(p1,p2){
 	return Math.sqrt((p1[0]-p2[0])*(p1[0]-p2[0])+(p1[1]-p2[1])*(p1[1]-p2[1]))
 }
@@ -54,4 +69,8 @@ setHiddeness = function(el, bool){
 	}else{
 		el.className = el.className.replace(/ ?hidden ?/,' ').trim()
 	}
+}
+
+dotProduct = function(v1, v2){
+	return v1[0]*v2[0]+v1[1]*v2[1]
 }
