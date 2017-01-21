@@ -104,6 +104,7 @@ var initializeGameComponent = function(){
 								space.players[i].ship.location = eventData.players[i].ship.location
 								space.players[i].ship.velocity = eventData.players[i].ship.velocity
 								if(space.players[i].ship.heading != eventData.players[i].ship.heading){
+									//console.log(space.players[i].ship.heading - eventData.players[i].ship.heading) // most always satifies: abs(serverHeading - localHeading) < .2 
 									ws.send(JSON.stringify({
 										heading: space.players[i].ship.heading,
 										playerId: myPlayerId

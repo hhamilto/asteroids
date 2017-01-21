@@ -326,8 +326,7 @@ var SpaceModel = (function(){
 			var acceleration = rotate(ship.heading,[0,duration*controls.accel*controls.corrections.accelerationFactor])	
 			ship.velocity[0] += acceleration[0]
 			ship.velocity[1] += acceleration[1]
-			console.log(controls.accel)
-			if(controls.accel ){//&& (Math.floor(duration)%2==0)){
+			if(controls.accel && (Math.floor(duration)%2==0)){
 				ship.points = ship.thrustPoints
 			}else{
 				ship.points = ship.coastPoints

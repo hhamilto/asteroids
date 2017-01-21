@@ -80,7 +80,7 @@ wss.on('connection', conn => {
 			asteroids: _.filter(space.asteroids, within(1001)(player.ship)),
 			players: _.filter(space.players, playerFiltered => within(1001)(player.ship)(playerFiltered.ship))
 		}))
-	}, 1000)
+	}, 100)
 	conn.on('close', function(){
 		clearInterval(interval)
 	})
