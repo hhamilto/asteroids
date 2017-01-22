@@ -42,16 +42,6 @@ var SpaceModel = (function(){
 			})
 			ctx.closePath()
 			ctx.stroke()
-			/*
-
-		ctx.beginPath()
-		ctx.moveTo(object.pointsFORSpace[0],object.pointsFORSpace[1])
-		object.pointsFORSpace.slice(1).concat([object.pointsFORSpace[0]]).forEach(function(point){
-			ctx.lineTo(point[0],point[1])
-		})
-		ctx.closePath()
-		ctx.stroke()
-		*/
 		}
 	}
 
@@ -341,7 +331,7 @@ var SpaceModel = (function(){
 		Update: function(space, currentTime){
 			var timePast = currentTime-space.lastPaintTime
 			space.lastPaintTime = currentTime
-			var SAFETY_MARGIN = 50
+			var SAFETY_MARGIN = 100
 			if(space.ship && space.paintCenter && space.screenDimensions) {
 				const aspectRatio = space.screenDimensions[0] / space.screenDimensions[1];
 				if(space.screenDimensions[0] > space.screenDimensions[1]){
@@ -400,7 +390,7 @@ var SpaceModel = (function(){
 			space.ship.velocity = [0,0]
 			space.controls.accel = 0
 			space.controls.yaw = 0
-			space.ship.heading = Math.PI	
+			space.ship.heading = Math.PI
 		}
 	}
 

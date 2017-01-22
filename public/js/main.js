@@ -106,7 +106,7 @@ var initializeGameComponent = function(){
 								if(space.players[i].ship.heading != eventData.players[i].ship.heading){
 									//console.log(space.players[i].ship.heading - eventData.players[i].ship.heading) // most always satifies: abs(serverHeading - localHeading) < .2 
 									ws.send(JSON.stringify({
-										heading: space.players[i].ship.heading,
+										headingCorrection: _.clamp(space.players[i].ship.heading-eventData.players[i].ship.heading, -Math.PI/9, Math.PI/9),
 										playerId: myPlayerId
 									}))
 								}

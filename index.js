@@ -63,8 +63,12 @@ wss.on('connection', conn => {
 			if(message.controls){
 				_.assign(player.controls, message.controls)
 			}
-			if(message.heading){
-				player.ship.heading = message.heading
+			if(message.headingCorrection){
+				if(Math.abs(message.headingCorrection) <= Math.PI/9){ // If the adjusted heading is more than 20 degrees off from what we think, ignore it
+					player.ship.heading+=message.headingCorrection
+				} else {
+					console.log('Ignoreing heading correction of: ' + message.headingCorrection)
+				}
 			}
 			if(message.fire){
 				SpaceModel.Ships.Fire(player.ship)
@@ -78,9 +82,10 @@ wss.on('connection', conn => {
 	var interval = setInterval(function(){
 		conn.send(JSON.stringify({
 			asteroids: _.filter(space.asteroids, within(1001)(player.ship)),
-			players: _.filter(space.players, playerFiltered => within(1001)(player.ship)(playerFiltered.ship))
+			players: _.filter(space.players, playerFiltered => within(1001)(player.ship)(playerFiltered.ship)),
+			bullets: space.bullets
 		}))
-	}, 100)
+	}, 1000)
 	conn.on('close', function(){
 		clearInterval(interval)
 	})
