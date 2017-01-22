@@ -55,7 +55,7 @@ var initializeGameComponent = function(){
 	var overlayMessageDiv = document.getElementById('overlay-messages')
 	var gameViewDiv = document.getElementById('game-view')
 	var startGame = function(){
-		var ws = new WebSocket('ws://192.168.69.6:3000');
+		var ws = new WebSocket('ws://morning-sierra-69649.herokuapp.com');
 		ws.onopen = function(hello){
 			var myPlayerId
 			ws.onmessage = function (event) {

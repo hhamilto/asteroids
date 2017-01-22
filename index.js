@@ -92,4 +92,4 @@ wss.on('connection', conn => {
 })
 
 server.on('request', app)
-server.listen(3000, function () { console.log('Listening on ' + server.address().port) })
+server.listen(process.env.PORT || 3000, function () { console.log('Listening on ' + server.address().port) })
